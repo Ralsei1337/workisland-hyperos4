@@ -18,7 +18,7 @@
 export const name = 'tool-work-island'
 
 const BRIDGE = 'http://127.0.0.1:8799'
-const MIN_INTERVAL_MS = 400
+const MIN_INTERVAL_MS = 100
 const TIMEOUT_MS = 1500
 
 /** 工具名 → 岛上状态，越具体的放前面。 */
@@ -108,7 +108,7 @@ function sendState(b, state, text) {
     b.lastAt = Date.now()
     void push('/state', { state, text, todoDone: b.todoDone, todoTotal: b.todoTotal })
   }
-  if (signature === b.last && now - b.lastAt < 6000) return
+  if (signature === b.last && now - b.lastAt < 1200) return
   if (now - b.lastAt < MIN_INTERVAL_MS) {
     if (b.timer) clearTimeout(b.timer)
     b.timer = setTimeout(() => { b.timer = undefined; fire() }, MIN_INTERVAL_MS)
@@ -145,6 +145,16 @@ function onEvent(session, event) {
     const toolName = String(data?.name || '')
     const state = stateFor(toolName)
     const detail = detailOf(data?.arguments)
+    // 工具切换是用户最想立刻看到的，直接发，不排进 100ms 合并窗口。
+    const now = Date.now()
+    const signature = `${state}|${detail}|${b.todoDone}/${b.todoTotal}`
+    if (signature !== b.last) {
+      b.last = signature
+      b.lastAt = now
+      if (b.timer) { clearTimeout(b.timer); b.timer = undefined }
+      void push('/state', { state, text: detail || titleFor(state), todoDone: b.todoDone, todoTotal: b.todoTotal })
+      return
+    }
     sendState(b, state, detail || titleFor(state))
     return
   }

@@ -25,7 +25,7 @@ island(action="idle")
 ## 安装
 
 ```bash
-dsha-plugin import dsh-work-island-0.2.0.tar.gz
+dsha-plugin import dsh-work-island-0.2.1.tar.gz
 # 用输出里的 previewId / confirmationSha256 确认：
 python3 /root/.dsh/plugin-manager.py install-preview <previewId> <confirmationSha256>
 ```

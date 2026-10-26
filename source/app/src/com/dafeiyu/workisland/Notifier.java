@@ -96,8 +96,20 @@ public final class Notifier {
         boolean hyper = HyperOs.hasIsland();
         String shortText = progress.isEmpty() ? baseTitle : baseTitle + " " + progress;
         if (hyper) {
-            shortText = done ? "任务完成" : IslandPayload.headline(st, false)
-                    + (progress.isEmpty() ? "" : " " + progress);
+            if (done) {
+                shortText = "任务完成";
+            } else {
+                StringBuilder sb = new StringBuilder(IslandPayload.headline(st, false));
+                if (!progress.isEmpty()) {
+                    sb.append(' ').append(progress);
+                } else if (text != null && !text.isEmpty()) {
+                    // 没有清单进度时，把「在干什么」塞进岛上那一格，更新看起来才及时。
+                    String detail = text.replaceAll("\\s+", " ").trim();
+                    if (detail.length() > 9) detail = detail.substring(0, 8) + "…";
+                    if (!detail.isEmpty()) sb.append(' ').append(detail);
+                }
+                shortText = sb.toString();
+            }
         }
 
         // HyperOS 展开态只认系统默认布局：标题 + 正文 + 大图。
