@@ -7,11 +7,15 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
+import android.view.WindowInsets;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -48,6 +52,19 @@ public class MainActivity extends Activity {
     };
 
     private TextView status;
+    private IslandPreviewView preview;
+    private final Handler previewHandler = new Handler(Looper.getMainLooper());
+    private final Runnable previewTick = new Runnable() {
+        @Override
+        public void run() {
+            if (preview != null) {
+                preview.update(Prefs.lastIslandState(MainActivity.this),
+                        Prefs.lastIslandText(MainActivity.this),
+                        Prefs.lastIslandDone(MainActivity.this));
+            }
+            previewHandler.postDelayed(this, 800);
+        }
+    };
     private TextView botLabel;
     private BotView botView;
     private String botKey = "hud";
@@ -91,7 +108,18 @@ public class MainActivity extends Activity {
         status.setTextSize(13);
         status.setGravity(Gravity.CENTER);
         status.setLineSpacing(dp(3), 1f);
-        root.addView(status, lp(0, 0, 0, 16));
+        root.addView(status, lp(0, 0, 0, 10));
+
+        // 应用内岛预览：HyperOS 在前台会收起系统岛，这里照系统胶囊的样子实时画一份。
+        preview = new IslandPreviewView(this);
+        root.addView(preview, new LinearLayout.LayoutParams(-1, dp(64)));
+
+        TextView previewNote = new TextView(this);
+        previewNote.setText("↑ 应用内预览（系统超级岛在应用前台时会被系统收起，回桌面即可看到真岛）");
+        previewNote.setTextColor(0xFF6F6B64);
+        previewNote.setTextSize(11);
+        previewNote.setGravity(Gravity.CENTER);
+        root.addView(previewNote, lp(0, 2, 0, 12));
 
         // ---- bot 舞台 ----
         // 不装进卡片：让 bot 直接站在这页纸上，像一枚自己躺着的感叹号。
@@ -246,6 +274,9 @@ public class MainActivity extends Activity {
         scroll.setBackgroundColor(BG);
         scroll.addView(root);
         setContentView(scroll);
+        // targetSdk 37 强制 edge-to-edge：不处理 insets 的话内容会画到状态栏底下，
+        // 把系统状态栏和超级岛一起盖住（看起来就是「App 在前台时岛不见了」）。
+        applySystemBarInsets(scroll);
         // 预览放大后内容会超出一屏，别让 ScrollView 自己滚到底把标题顶进状态栏。
         scroll.post(() -> scroll.scrollTo(0, 0));
         ensureService();
@@ -276,13 +307,35 @@ public class MainActivity extends Activity {
         }
         scroll.addView(column);
         setContentView(scroll);
+        applySystemBarInsets(scroll);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         HyperOs.invalidate();
-        if (!sheetMode) refresh();
+        if (!sheetMode) {
+            refresh();
+            previewHandler.removeCallbacks(previewTick);
+            previewHandler.post(previewTick);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        previewHandler.removeCallbacks(previewTick);
+        super.onPause();
+    }
+
+    /** 让内容避开状态栏与导航栏，把状态栏留给系统（和超级岛）。 */
+    private void applySystemBarInsets(View view) {
+        if (Build.VERSION.SDK_INT < 30) return;
+        view.setOnApplyWindowInsetsListener((v, insets) -> {
+            android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
+            v.setPadding(0, bars.top, 0, bars.bottom);
+            return insets;
+        });
+        view.requestApplyInsets();
     }
 
     private View phaseChip(String text, BotState.Look look, boolean failed) {

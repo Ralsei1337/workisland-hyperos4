@@ -58,8 +58,8 @@ public final class Notifier {
         Icon large = largeIcon(c, st, face, morph, anim);
         int color = statusColor(st);
 
-        Intent open = new Intent(c, MainActivity.class);
-        open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        // 点岛 / 点通知打开 DSHA 而不是工作岛自己：工作岛只是显示层。
+        Intent open = Targets.open(c);
         PendingIntent pi = PendingIntent.getActivity(c, 0, open,
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -131,6 +131,7 @@ public final class Notifier {
             else b.setProgress(0, 0, true);
         }
         if (!shortText.isEmpty()) b.setShortCriticalText(shortText);
+        Prefs.setLastIsland(c, shortText, st, done);
 
         Bundle extras = new Bundle();
         extras.putBoolean(EXTRA_PROMOTED, true);
@@ -159,8 +160,8 @@ public final class Notifier {
     static Notification buildIdle(Context c, String title, String text) {
         NotificationManager nm = c.getSystemService(NotificationManager.class);
         ensureChannel(nm);
-        Intent open = new Intent(c, MainActivity.class);
-        open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        // 点岛 / 点通知打开 DSHA 而不是工作岛自己：工作岛只是显示层。
+        Intent open = Targets.open(c);
         PendingIntent pi = PendingIntent.getActivity(c, 0, open,
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         return new Notification.Builder(c, CHANNEL)

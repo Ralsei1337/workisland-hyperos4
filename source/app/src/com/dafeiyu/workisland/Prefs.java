@@ -11,6 +11,9 @@ final class Prefs {
     private static final String SOUL = "soul";
     private static final String ISLAND_PARAM = "island_param";
     private static final String HTTP_PORT = "http_port";
+    private static final String LAST_TEXT = "last_island_text";
+    private static final String LAST_STATE = "last_island_state";
+    private static final String LAST_DONE = "last_island_done";
 
     private Prefs() {}
 
@@ -49,6 +52,27 @@ final class Prefs {
      * 默认关：没申请到小米超级岛权限时系统会忽略它，个别 HyperOS 版本还会因此
      * 把展开态渲染坏；等应用真正拿到 APP_ID 再打开。
      */
+    /** 记下最后一次真正发出去的通知文案，应用内预览用。 */
+    static void setLastIsland(Context c, String shortText, String state, boolean done) {
+        c.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit()
+                .putString(LAST_TEXT, shortText == null ? "" : shortText)
+                .putString(LAST_STATE, state == null ? "" : state)
+                .putBoolean(LAST_DONE, done)
+                .apply();
+    }
+
+    static String lastIslandText(Context c) {
+        return c.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(LAST_TEXT, "待机中");
+    }
+
+    static String lastIslandState(Context c) {
+        return c.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(LAST_STATE, "idle");
+    }
+
+    static boolean lastIslandDone(Context c) {
+        return c.getSharedPreferences(FILE, Context.MODE_PRIVATE).getBoolean(LAST_DONE, false);
+    }
+
     /** 本地 HTTP 桥端口（给 DSHA / 脚本推状态用）。 */
     static int httpPort(Context c) {
         return c.getSharedPreferences(FILE, Context.MODE_PRIVATE).getInt(HTTP_PORT, HttpBridge.DEFAULT_PORT);

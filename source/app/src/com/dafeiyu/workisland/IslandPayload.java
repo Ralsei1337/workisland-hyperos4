@@ -85,8 +85,7 @@ final class IslandPayload {
     }
 
     private static void bundleActions(Context c, Bundle extras) {
-        Intent open = new Intent(c, MainActivity.class)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        Intent open = Targets.open(c);
         android.app.PendingIntent pi = android.app.PendingIntent.getActivity(
                 c, 0, open,
                 android.app.PendingIntent.FLAG_IMMUTABLE | android.app.PendingIntent.FLAG_UPDATE_CURRENT);

@@ -64,8 +64,8 @@ ColorOS 测试版（1.4）
 SHA-256  98c6082527f4f349fd45b1f46c8de79e5e3dc82745099a62c47652627ba9bbb2
 大小     338,665 字节
 
-HyperOS 4 适配版（1.5.1 / versionCode 14）
-SHA-256  efc33ce07ec1cb1e7ebc3b7cae639c09075d50d8ebdc269c3c9c22a0fc7f5e10
+HyperOS 4 适配版（1.5.1 / versionCode 17）
+SHA-256  0605ffe0c089be277ab53bf91951f9133c742c05b419b2ad6b459fecbdaa6700
 大小     346,861 字节
 ```
 
