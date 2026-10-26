@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="cc.codroid"
+    android:versionCode="71"
+    android:versionName="0.4.6">
+
+    <!-- targetSdk 28：29 起禁止执行应用可写目录里的程序（W^X），工具链只能「经加载器」跑（Env.applyLoader）。
+         build.sh 的 TARGET_SDK=36 会改这一行出 36 的包；下面为 36 加的声明在 28 的包里都不改变行为 -->
+    <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="28" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- 保活：前台服务 + 部分唤醒锁 + 申请忽略电池优化 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Shizuku：调试提权（以 shell 身份执行），见 Priv.java -->
+    <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
+    <!-- 自更新、一键装 Shizuku：PackageInstaller 会话（每次仍由用户在系统弹窗里确认），见 Apk.java -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- 大件更新只在不计流量的网络上自动下；Shizuku 无线调试激活要知道连没连 Wi‑Fi -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- 开机后自动重新激活 Shizuku（用户可在设置页关掉），见 SysEvents.java -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- 普通应用拿不到；Shizuku 激活后由 shell 授予，用来在重启后自己打开无线调试，见 ShizukuSetup.java -->
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    <!-- 无线调试配对：让带输入框的通知常驻屏幕顶部（配对码对话框一切走就作废），见 ShizukuSetup.pairNote -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- 设备工具 open(kind=alarm/timer)：只是把闹钟应用打开并预填，普通权限，装时自动给 -->
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+    <!-- 以下为 targetSdk 36：前台服务类型（34 起必须声明）、定时任务的精确闹钟（31 起要权限，用户在设置里给）、
+         共享目录 /sdcard/cccodroid（30 起分区存储，旧的存储权限不再管用，要「所有文件访问」） -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
+    <!-- 软件包可见性（30 起）：查 Shizuku 装没装、设备工具列应用 / 打开别的应用 -->
+    <queries>
+        <package android:name="moe.shizuku.privileged.api" />
+        <!-- 可选集成「工作岛」：设置里开启后，网关用 pm list packages 检测它装没装 -->
+        <package android:name="com.dafeiyu.workisland" />
+        <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="https" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="http" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="geo" /></intent>
+        <intent><action android:name="android.intent.action.DIAL" /><data android:scheme="tel" /></intent>
+        <intent><action android:name="android.intent.action.SENDTO" /><data android:scheme="mailto" /></intent>
+        <intent><action android:name="android.intent.action.SENDTO" /><data android:scheme="smsto" /></intent>
+        <intent><action android:name="android.intent.action.INSERT" /><data android:mimeType="vnd.android.cursor.dir/event" /></intent>
+        <intent><action android:name="android.intent.action.SET_ALARM" /></intent>
+        <intent><action android:name="android.intent.action.SET_TIMER" /></intent>
+        <intent><action android:name="android.intent.action.SEND" /><data android:mimeType="*/*" /></intent>
+    </queries>
+
+    <application
+        android:label="cccodroid"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:hasCode="true"
+        android:hasFragileUserData="true"
+        android:allowBackup="false"
+        android:hardwareAccelerated="true"
+        android:extractNativeLibs="true"
+        android:largeHeap="true"
+        android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="true"
+        android:enableOnBackInvokedCallback="false"
+        android:theme="@android:style/Theme.Material.NoActionBar">
+
+        <!-- 应用内浏览器（系统 WebView，见 BrowserActivity.java）：分屏 / 转屏不重建，免得页面重载 -->
+        <activity
+            android:name=".BrowserActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|screenLayout|smallestScreenSize|uiMode|density|fontScale|navigation" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Launch"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|screenLayout|smallestScreenSize|uiMode|density|fontScale|navigation">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- 「分享到 cccodroid」：相册 / 文件管理器 / 浏览器把东西递进来，变成输入框里的附件。
+                 content:// 是按次授予读权限的，不需要存储权限 -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity>
+
+        <!-- Shizuku-API（MIT）：Shizuku 经这个 provider 把 binder 递给我们 -->
+        <meta-data android:name="moe.shizuku.client.V3_SUPPORT" android:value="true" />
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="cc.codroid.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+
+        <!-- 往外分享文件（会话导出包、日志包）：不导出，只靠分享时一次性的读授权 -->
+        <provider
+            android:name=".Share"
+            android:authorities="cc.codroid.share"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+
+        <!-- 应用内部回调：安装结果、通知栏填的配对码。不导出 -->
+        <receiver android:name=".Events" android:exported="false" />
+        <!-- 定时任务的系统闹钟：到点拉起网关。不导出 -->
+        <receiver android:name=".SchedAlarm" android:exported="false" />
+        <!-- 系统广播：自更新装完、开机 -->
+        <receiver android:name=".SysEvents" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- 网关的宿主：前台服务。界面关了、切后台、锁屏，正在跑的任务都不断 -->
+        <!-- 导出但要求 INTERACT_ACROSS_USERS_FULL：只有 shell / 系统能启动（静默自更新装完由 shell 拉起服务，
+             国产 ROM 会拦掉 MY_PACKAGE_REPLACED）。普通应用拿不到这个权限 -->
+        <!-- specialUse：本地开发服务器 + 长任务，归不进系统列的那几类；没有 dataSync 那样的 6 小时上限 -->
+        <service
+            android:name=".GatewayService"
+            android:exported="true"
+            android:foregroundServiceType="specialUse"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Local gateway that runs the user's coding-agent sessions and their tool processes in the background" />
+        </service>
+
+        <!-- 设备工具的读屏 / 点按（A11y.java）。默认关；只有系统能绑定（BIND_ACCESSIBILITY_SERVICE） -->
+        <service
+            android:name=".A11y"
+            android:label="@string/a11y_label"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/a11y" />
+        </service>
+    </application>
+</manifest>

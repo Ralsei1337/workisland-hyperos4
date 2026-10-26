@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# island —— 把 DeepSeek（DSHA / DSH）的工作状态推到工作岛
+#            HyperOS 4 显示在「小米超级岛」，ColorOS 显示在「流体云」。
+#
+# 原理：工作岛 app 在本机 127.0.0.1:8799 开了个 HTTP 桥，DSHA 的 Ubuntu 与
+#       Android 共享网络命名空间，所以不用 am、不用 root。
+#
+# 用法：
+#   island ping
+#   island state  <状态> [正文] [已完成] [总数]     # 状态=reading/thinking/writing/running/waiting/done…
+#   island title  <标题> [正文] [已完成] [总数]     # 直接给标题（不改标题时用 state）
+#   island done   [标题] [正文]
+#   island idle
+#   island cancel
+#
+# 例子：
+#   island state reading "Notifier.java" 2 5
+#   island done "任务完成" "用时 3 分 12 秒"
+#
+# 环境变量：ISLAND_PORT（默认 8799）、ISLAND_HOST（默认 127.0.0.1）、ISLAND_TOKEN
+
+set -u
+PORT="${ISLAND_PORT:-8799}"
+HOST="${ISLAND_HOST:-127.0.0.1}"
+TOKEN="${ISLAND_TOKEN:-}"
+BASE="http://${HOST}:${PORT}"
+
+enc() {
+  python3 -c 'import sys,urllib.parse;print(urllib.parse.quote(sys.argv[1],safe=""))' "$1"
+}
+
+call() {
+  local path="$1"; shift
+  local qs=""
+  for kv in "$@"; do
+    [ -z "$kv" ] && continue
+    local k="${kv%%=*}" v="${kv#*=}"
+    if [ -z "$qs" ]; then qs="?"; else qs+="&"; fi
+    qs+="${k}=$(enc "$v")"
+  done
+  if [ -n "$TOKEN" ]; then
+    if [[ "$qs" == "?"* ]]; then qs+="&token=${TOKEN}"; else qs+="?token=${TOKEN}"; fi
+  fi
+  curl -s --max-time 3 "${BASE}${path}${qs}"
+}
+
+case "${1:-}" in
+  ping)
+    out=$(call /ping)
+    if [ -z "$out" ]; then
+      echo "工作岛没响应（${BASE}）。先打开工作岛 App 一次，让它把前台服务和 HTTP 桥跑起来。"
+      exit 1
+    fi
+    echo "$out"
+    ;;
+  state)
+    state="${2:-working}"; text="${3:-}"; td="${4:-0}"; tt="${5:-0}"
+    call /state "state=$state" "text=$text" "todoDone=$td" "todoTotal=$tt"
+    echo
+    ;;
+  title)
+    title="${2:-正在干活}"; text="${3:-}"; td="${4:-0}"; tt="${5:-0}"
+    call /start "title=$title" "text=$text" "todoDone=$td" "todoTotal=$tt" "state=working"
+    echo
+    ;;
+  done)
+    title="${2:-任务完成}"; text="${3:-}"
+    call /done "title=$title" "text=$text"
+    echo
+    ;;
+  idle)
+    call /idle
+    echo
+    ;;
+  cancel)
+    call /cancel
+    echo
+    ;;
+  ""|-h|--help)
+    sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'
+    ;;
+  *)
+    echo "未知命令：$1（试试 island --help）" >&2
+    exit 2
+    ;;
+esac

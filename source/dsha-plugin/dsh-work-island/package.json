@@ -1,0 +1,24 @@
+{
+  "name": "dsh-work-island",
+  "version": "0.1.2",
+  "description": "Push DeepSeek Harness run state to WorkIsland on the phone status bar (HyperOS super island / ColorOS fluid cloud)",
+  "type": "module",
+  "main": "lib/index.js",
+  "files": [
+    "lib/index.js",
+    "cordis.patch.yml"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "plugin",
+    "work-island",
+    "hyperos",
+    "super-island"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

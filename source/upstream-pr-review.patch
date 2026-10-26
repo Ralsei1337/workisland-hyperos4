@@ -1,0 +1,945 @@
+diff --git a/android/AndroidManifest.xml b/android/AndroidManifest.xml
+index 3ed6b6a..c2c0ea7 100644
+--- a/android/AndroidManifest.xml
++++ b/android/AndroidManifest.xml
+@@ -39,6 +39,8 @@
+     <!-- 软件包可见性（30 起）：查 Shizuku 装没装、设备工具列应用 / 打开别的应用 -->
+     <queries>
+         <package android:name="moe.shizuku.privileged.api" />
++        <!-- 可选集成「工作岛」：设置里开启后，网关用 pm list packages 检测它装没装 -->
++        <package android:name="com.dafeiyu.workisland" />
+         <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent>
+         <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="https" /></intent>
+         <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="http" /></intent>
+diff --git a/docs/work-island.md b/docs/work-island.md
+new file mode 100644
+index 0000000..d3a42e5
+--- /dev/null
++++ b/docs/work-island.md
+@@ -0,0 +1,104 @@
++# Work Island (optional integration)
++
++Mirror Claude's live work status in cccodroid onto the **ColorOS 16 fluid cloud / dynamic island**.
++
++- Working: **Working** + the current action (running a command / thinking / waiting for approval…)
++- Done: **Done** + elapsed time
++- After 8 s: the capsule collapses; a quiet notification stays in the shade.
++
++This is an **optional third-party integration**: cccodroid only sends the status out; it does not
++include or take responsibility for the Work Island app itself.
++
++---
++
++## Status
++
++> **Pre-release / Alpha**
++> Tested only on **OnePlus PJA110 · ColorOS 16.0.3 · Android 16 (SDK 36)**.
++> Other ColorOS versions and other OEMs are untested; interfaces and file layout may change.
++> Not recommended for production or critical tasks.
++
++---
++
++## Components
++
++| Part | Location | Role |
++|---|---|---|
++| Core | `gateway/gw/work-island-core.mjs` | Events → text, throttling, finish detection (pure, unit-tested) |
++| Gateway wiring | `gateway/gw/work-island.mjs` | Off by default; when enabled, detects the app, subscribes, calls `am` |
++| Bus hook | `gateway/gw/bus.mjs` | `onPublish(fn)`: in-process subscription, no HTTP, no token |
++| Setting | `gateway/gw/settings.mjs` | `workIsland: false`, settings checkbox |
++| Renderer | [WorkIsland-Android](https://github.com/STUTTEFRFIX/WorkIsland-Android) | Android 16 Live Update + foreground service |
++
++The gateway side uses Node built-ins only — no npm dependency, no build step.
++
++---
++
++## Enable
++
++1. Install the Work Island app ([releases](https://github.com/STUTTEFRFIX/WorkIsland-Android/releases))
++   and open it once: notifications on / live updates allowed / battery unrestricted.
++   - 1.1+ supports English done/idle text; earlier versions only have Chinese done/idle.
++2. cccodroid Settings → **工作岛（ColorOS 灵动岛）** → enable.
++3. The gateway log shows:
++
++   ```
++   [work-island] 已订阅网关事件
++   ```
++
++4. Send a message and watch the island.
++
++## Disable
++
++- Turn the setting off: the gateway unsubscribes and sends one IDLE to collapse the island.
++- `CCAPP_WORK_ISLAND=0` forces it off; `=1` skips the install check and forces it on.
++- Use `WORK_ISLAND_PKG=your.package` for a different package name.
++
++---
++
++## Design notes
++
++1. **No separate process.**
++   The gateway subscribes to `onPublish` in-process and owns the timers. Stopping the gateway
++   stops the subscription and timers together, so no orphan process. On SIGTERM it sends a
++   synchronous IDLE so the island collapses.
++2. **Off by default.**
++   Anyone could install an app with the same package name, so the user must enable it explicitly.
++3. **Updates throttled to 1.5 s.**
++   Tool-heavy turns can emit many `phase`/`tool_use` events per second. Only the last state is
++   kept and flushed after the window, avoiding a cold `app_process` for every `am` call.
++4. **Errors carry no content.**
++   `error.message` may contain paths or command output; the island only shows “Error”.
++5. **Finish detection uses `runs`.**
++   If another run is still active at `run_end`, nothing is reported. Otherwise a 3 s grace
++   window lets a new run cancel the completion. `run_end` is published after the run is removed
++   from `RUNS`, so `runList()` is authoritative — no HTTP re-check, no polling.
++6. **Text follows the UI language.**
++   `LAST_LANG` starting with `zh` uses Chinese; otherwise English. More languages later.
++
++---
++
++## Tests
++
++```bash
++node scripts/test.mjs work-island
++```
++
++Covers state mapping, done + idle, turn boundaries, grace cancellation, abort, approval,
++error redaction, English, 1.5 s throttling, and IDLE on disable.
++
++## Known limits
++
++- Force-stopping cccodroid skips the final IDLE; reopen cccodroid to recover.
++- Other ColorOS versions and OEM dynamic-island implementations are untested.
++- The app's notification service is exported; another app can spoof the displayed state.
++- The capsule is drawn by the system; no OPPO UPK custom card.
++- The APK in the Work Island repo is test-signed.
++
++---
++
++## Links
++
++- Work Island: https://github.com/STUTTEFRFIX/WorkIsland-Android
++- Design: https://github.com/STUTTEFRFIX/WorkIsland-Android/blob/main/docs/01-方案与设计.md
++- Test report: https://github.com/STUTTEFRFIX/WorkIsland-Android/blob/main/docs/03-测试报告.md
+diff --git a/docs/work-island.zh-CN.md b/docs/work-island.zh-CN.md
+new file mode 100644
+index 0000000..44874e2
+--- /dev/null
++++ b/docs/work-island.zh-CN.md
+@@ -0,0 +1,108 @@
++# 工作岛（可选集成）
++
++把 cccodroid 里 Claude 的实时工作状态，显示在 **ColorOS 16 的流体云 / 灵动岛**上。
++
++- 干活时：「正在干活」+ 当前动作（用执行命令 / 正在想 / 等你确认…）
++- 收工：「任务完成」+ 用时
++- 8 秒后：岛上收起，通知栏保留一条安静的通知
++
++这是**第三方应用的可选集成**：cccodroid 只负责把状态送出去，不包含也不负责「工作岛」应用本身的功能。
++
++---
++
++## 测试状态
++
++> **Pre-release / Alpha**
++> 目前只在 **OnePlus PJA110 · ColorOS 16.0.3 · Android 16（SDK 36）** 上测试成功。
++> 其他 ColorOS 版本、其他品牌机型均未验证；接口、文案和文件布局可能继续变动。
++> 不建议用于生产或关键任务。
++
++---
++
++## 组成
++
++| 部分 | 位置 | 作用 |
++|---|---|---|
++| 核心逻辑 | `gateway/gw/work-island-core.mjs` | 事件 → 文案、节流、收工判定（纯逻辑，可单测） |
++| 网关接入 | `gateway/gw/work-island.mjs` | 默认关闭；开关打开后检测应用、订阅总线、调 `am` |
++| 总线钩子 | `gateway/gw/bus.mjs` | `onPublish(fn)`：进程内订阅，不用 HTTP、不用令牌 |
++| 设置 | `gateway/gw/settings.mjs` | `workIsland: false`，设置页开关 |
++| 渲染应用 | 仓库 [WorkIsland-Android](https://github.com/STUTTEFRFIX/WorkIsland-Android) | Android 16 Live Update + 前台服务 |
++
++网关侧只用 Node 内置模块：没有新增 npm 依赖，没有构建步骤。
++
++---
++
++## 启用
++
++1. 安装「工作岛」应用（[releases](https://github.com/STUTTEFRFIX/WorkIsland-Android/releases)），
++   打开一次，确认：通知开 / 实时更新允许 / 电池不优化。
++   - 1.1 起支持英文的完成/收起文案；更早版本只有中文的完成/收起。
++2. cccodroid 设置 → **工作岛（ColorOS 灵动岛）** → 打开。
++3. 网关日志出现：
++
++   ```
++   [work-island] 已订阅网关事件
++   ```
++
++4. 发一条消息，看灵动岛。
++
++## 关闭
++
++- 设置页关掉开关：网关取消订阅，并给应用发一次 IDLE 让岛收起。
++- 环境变量 `CCAPP_WORK_ISLAND=0`：强制关闭；`=1`：跳过安装检测强制开启。
++- 换一个包名：`WORK_ISLAND_PKG=your.package`。
++
++---
++
++## 设计要点
++
++1. **不另起进程**
++   网关里直接订阅 `onPublish`，定时器也在网关里。停网关时订阅和定时器一起没，
++   不会留孤儿；SIGTERM 时会同步发一次 IDLE 让岛收起。
++
++2. **默认关闭**
++   只有用户在设置里打开，才会检测应用、开始送状态。任何人都能装一个同包名应用，
++   所以不能默认开启。
++
++3. **更新限频 1.5 秒**
++   工具调用密集时 `phase` / `tool_use` 一秒能来好几条；只保留最后一条，按时补发。
++   这样不会每次 `am` 都冷启动一个 `app_process`。
++
++4. **错误不带内容**
++   `error` 的 message 可能含路径、命令输出；岛上只显示「出错了」。
++
++5. **收工看 `runs`**
++   `run_end` 后如果还有别的活跃轮次，就不算完；没有活跃轮次再等 3 秒宽限，
++   期间来了新的一轮就取消完成。`run_end` 触发时该轮次已经从 `RUNS` 删除，直接读
++   `runList()` 即可，不需要 HTTP 复查或轮询。
++
++6. **文案跟随界面语言**
++   `config.mjs` 的 `LAST_LANG` 是 `zh` 开头用中文，否则英文；更多语言以后再补。
++
++---
++
++## 测试
++
++```bash
++node scripts/test.mjs work-island
++```
++
++覆盖：状态映射、完成 + 收起、换轮不误报、宽限期取消完成、中止、等确认、
++错误脱敏、英文、1.5 秒节流、关开关发 IDLE。
++
++## 已知限制
++
++- cccodroid 被强行停止后，网关来不及发 IDLE；重开 cccodroid 后恢复。
++- 其他 ColorOS 版本与厂商的“灵动岛”实现未验证。
++- 工作岛应用的通知服务是 exported 的，同机应用可以伪造显示状态（仅影响显示）。
++- 胶囊外观由系统绘制，未使用 OPPO UPK 自定义卡片。
++- 工作岛仓库里的 APK 是测试签名。
++
++---
++
++## 相关链接
++
++- 工作岛仓库：https://github.com/STUTTEFRFIX/WorkIsland-Android
++- 方案与设计：https://github.com/STUTTEFRFIX/WorkIsland-Android/blob/main/docs/01-方案与设计.md
++- 测试报告：https://github.com/STUTTEFRFIX/WorkIsland-Android/blob/main/docs/03-测试报告.md
+diff --git a/gateway/gw/bus.mjs b/gateway/gw/bus.mjs
+index 13b9dc2..cc4e55f 100644
+--- a/gateway/gw/bus.mjs
++++ b/gateway/gw/bus.mjs
+@@ -15,12 +15,21 @@ import { flushPend, snapshot } from "./queue.mjs";
+ export const BOOT = Date.now().toString(36);
+ const BUS = { seq: 0, ring: [], clients: new Set() };
+ const RING_MAX = 4000;
++// 进程内订阅者：可选集成（如工作岛）不用再开一条 HTTP SSE，也不占令牌。
++const SUBSCRIBERS = new Set();
++
++/** 订阅每个事件；返回取消订阅的函数。订阅者出错不影响主流程。 */
++export function onPublish(fn) {
++  SUBSCRIBERS.add(fn);
++  return () => SUBSCRIBERS.delete(fn);
++}
+ 
+ export function publish(ev) {
+   const seq = ++BUS.seq;
+   const line = `id: ${BOOT}.${seq}\ndata: ${JSON.stringify(ev)}\n\n`;
+   BUS.ring.push({ seq, line });
+   if (BUS.ring.length > RING_MAX) BUS.ring.splice(0, BUS.ring.length - RING_MAX);
++  for (const fn of SUBSCRIBERS) { try { fn(ev); } catch {} }
+   for (const c of BUS.clients) busWrite(c, line);
+ }
+ function busWrite(res, line) {
+diff --git a/gateway/gw/settings.mjs b/gateway/gw/settings.mjs
+index fbc8e6d..e751d15 100644
+--- a/gateway/gw/settings.mjs
++++ b/gateway/gw/settings.mjs
+@@ -33,6 +33,8 @@ export const SETTINGS = {
+   staticCompat: true,
+   // 空闲压缩：长会话闲置快一小时、1 小时提示缓存快过期时先压缩，下一条消息不用把整段历史重算一遍（见 idleArm）
+   idleCompaction: true,
++  // 工作岛：把 Claude 的工作状态送到 ColorOS 16 灵动岛（可选，默认关；见 gw/work-island.mjs）
++  workIsland: false,
+   // 端侧小模型：chat = 纯聊天（不给工具，提示只有几十 token）；custom = 用户自己的 ~/.cccodroid/local-mode.json
+   localMode: "chat",
+ };
+@@ -155,6 +157,7 @@ export async function routeSettings(req, res, u, p) {
+ 
+       if ("staticCompat" in b) { SETTINGS.staticCompat = !!b.staticCompat; try { customRefresh(); } catch {} }   // 下一轮生效；自定义组件的入口立刻跟着改
+       if ("idleCompaction" in b) { SETTINGS.idleCompaction = !!b.idleCompaction; if (!SETTINGS.idleCompaction) idleDisarmAll(); }
++      if ("workIsland" in b) SETTINGS.workIsland = !!b.workIsland;
+ 
+       if ("maxParallel" in b) {
+         const n = Math.round(Number(b.maxParallel));
+@@ -195,7 +198,12 @@ export async function routeSettings(req, res, u, p) {
+       }
+ 
+       saveSettings();
+-      log(`设置已更新 provider=${PROVIDER.id} model=${SETTINGS.model || "(默认)"} effort=${SETTINGS.effort} autoCompact=${SETTINGS.autoCompactWindow || "(默认)"}`);
++      if ("workIsland" in b) {
++        import("./work-island.mjs")
++          .then((m) => m.applyWorkIslandSetting())
++          .catch((e) => log("工作岛设置应用失败: " + e.message));
++      }
++      log(`设置已更新 provider=${PROVIDER.id} model=${SETTINGS.model || "(默认)"} effort=${SETTINGS.effort} autoCompact=${SETTINGS.autoCompactWindow || "(默认)"} workIsland=${SETTINGS.workIsland}`);
+       return sendJson(res, 200, { ok: true, settings: SETTINGS, provider: PROVIDER.id, upstream: CFG.upstream });
+     }
+   }
+diff --git a/gateway/gw/work-island-core.mjs b/gateway/gw/work-island-core.mjs
+new file mode 100644
+index 0000000..7132e7e
+--- /dev/null
++++ b/gateway/gw/work-island-core.mjs
+@@ -0,0 +1,302 @@
++// ── 工作岛核心：事件 → 状态文案 → 完成判定 ────────────────────────────────
++// 纯逻辑，不碰进程、不读设置、不订阅总线；方便单元测试。
++// 外面的 work-island.mjs 负责把它接到真实总线、runs 和 am 上。
++//
++// 设计要点：
++//  · 更新最多 1.5 秒一次，只保留最后一条；到时补发最后那条。
++//  · 收工看 runs（所有活跃轮次），不看 run；run_end 后仍要等 3 秒宽限。
++//  · error 只显示「出错了」，不转发 message（可能含路径/命令输出）。
++//  · 文案跟随 LAST_LANG：zh 开头用中文，否则英文。
++
++const ZH_TOOLS = {
++  Bash: "执行命令", Read: "读文件", Write: "写文件", Edit: "改文件",
++  Glob: "找文件", Grep: "搜代码", WebSearch: "查资料", WebFetch: "读网页",
++  Task: "子任务", Agent: "子任务", TodoWrite: "整理清单", NotebookEdit: "改笔记",
++  Skill: "调用技能", KillShell: "收尾命令",
++};
++
++const EN_TOOL_NAMES = {
++  Bash: "a command", Read: "a file", Write: "a file", Edit: "a file",
++  Glob: "files", Grep: "code", WebSearch: "the web", WebFetch: "a page",
++  Task: "a subtask", Agent: "a subtask", TodoWrite: "the list",
++  NotebookEdit: "a notebook", Skill: "a skill", KillShell: "a command",
++};
++
++const EN_TOOL_TITLES = {
++  Bash: "Running", Read: "Reading", Write: "Writing", Edit: "Editing",
++  Glob: "Finding", Grep: "Searching", WebSearch: "Searching", WebFetch: "Reading",
++  Task: "Subtask", Agent: "Subtask", TodoWrite: "Updating list",
++  NotebookEdit: "Editing", Skill: "Skill", KillShell: "Stopping",
++};
++
++const ZH = {
++  working: "正在干活",
++  done: "任务完成",
++  waiting: "等你确认",
++  start: "正在处理…",
++  wait: "等模型回复…",
++  think: "正在想…",
++  text: "正在写回复…",
++  tool: (n) => `用 ${n}…`,
++  perm: (n) => `需要你确认：${n}`,
++  resume: "继续…",
++  compact: "整理上下文…",
++  sub: (d) => `子任务：${d}…`,
++  bg: "后台任务还在跑…",
++  error: "出错了",
++  aborted: "已中止",
++  idleTitle: "工作岛",
++  idleText: "在后台等下一轮",
++  took: (s) => `用时 ${s}`,
++  titleWait: "等模型",
++  titleThink: "思考中",
++  titleText: "写回复",
++  titleRetry: "重试中",
++  titleCompact: "整理上下文",
++  titleSub: "子任务",
++  titleBg: "后台任务",
++  titleError: "出错了",
++  todoTitle: "整理清单",
++  todo: (d, t) => `清单 ${d}/${t}`,
++  toolName: (n) => ZH_TOOLS[n] || n || "工具",
++  toolTitle: (n) => ZH_TOOLS[n] || n || "工具",
++};
++
++const EN = {
++  working: "Working",
++  done: "Done",
++  waiting: "Waiting for you",
++  start: "Processing…",
++  wait: "Waiting for the model…",
++  think: "Thinking…",
++  text: "Writing…",
++  tool: (n) => `Using ${n}…`,
++  perm: (n) => `Waiting for approval: ${n}`,
++  resume: "Continuing…",
++  compact: "Compacting context…",
++  sub: (d) => `Subtask: ${d}…`,
++  bg: "Background task still running…",
++  error: "Error",
++  aborted: "aborted",
++  idleTitle: "Work Island",
++  idleText: "Waiting for the next run",
++  took: (s) => `Took ${s}`,
++  titleWait: "Waiting",
++  titleThink: "Thinking",
++  titleText: "Writing",
++  titleRetry: "Retrying",
++  titleCompact: "Compacting",
++  titleSub: "Subtask",
++  titleBg: "Background",
++  titleError: "Error",
++  todoTitle: "Updating list",
++  todo: (d, t) => `List ${d}/${t}`,
++  toolName: (n) => EN_TOOL_NAMES[n] || n || "a tool",
++  toolTitle: (n) => EN_TOOL_TITLES[n] || n || "Tool",
++};
++
++function humanDuration(sec, zh) {
++  if (zh) return sec < 60 ? `${sec} 秒` : `${Math.floor(sec / 60)} 分 ${sec % 60} 秒`;
++  return sec < 60 ? `${sec}s` : `${Math.floor(sec / 60)}m ${sec % 60}s`;
++}
++
++/** TodoWrite 的清单进度：{ title, text }；不是清单工具返回 null */
++function todoProgress(ev, l) {
++  const todos = ev && ev.input && Array.isArray(ev.input.todos) ? ev.input.todos : null;
++  if (!todos) return null;
++  const total = todos.length;
++  const done = todos.filter((t) => t && t.status === "completed").length;
++  return { title: l.todoTitle, text: l.todo(done, total), state: "planning" };
++}
++
++const TOOL_STATE = {
++  Bash: "running", KillShell: "running",
++  Read: "reading", Glob: "reading", Grep: "reading",
++  Write: "writing", Edit: "writing", NotebookEdit: "writing",
++  WebSearch: "searching", WebFetch: "searching",
++  Task: "subtask", Agent: "subtask", Skill: "working",
++};
++const toolState = (name) => TOOL_STATE[name] || "working";
++
++/**
++ * @param {object} opts
++ * @param {(action:string,title:string,text:string,since:number)=>void} opts.send  发通知
++ * @param {()=>Array} [opts.runs]     读活跃轮次（默认空）
++ * @param {()=>string} [opts.lang]    最近界面语言
++ * @param {()=>number} [opts.clock]   当前时间（测试可替换）
++ * @param {number} [opts.graceMs]     收工宽限，默认 3000
++ * @param {number} [opts.idleMs]      完成后收起，默认 8000
++ * @param {number} [opts.throttleMs]  更新最小间隔，默认 1500
++ */
++export function createWorkIsland(opts = {}) {
++  const send = opts.send || (() => {});
++  const sendSync = opts.sendSync || send;
++  const runs = opts.runs || (() => []);
++  const lang = opts.lang || (() => "zh");
++  const clock = opts.clock || Date.now;
++  const graceMs = opts.graceMs ?? 3000;
++  const idleMs = opts.idleMs ?? 8000;
++  const throttleMs = opts.throttleMs ?? 1500;
++
++  const L = () => (String(lang() || "zh").startsWith("zh") ? ZH : EN);
++  const liveRuns = () => (runs() || []).filter((r) => r && !r.ended);
++
++  let active = null;        // { id, startedAt, last }
++  let doneTimer = null;
++  let idleTimer = null;
++  let lastSent = 0;
++  let pending = null;       // 节流时保留的最后一条
++  let pendingTimer = null;
++
++  const emit = (action, title, text, since, state) => {
++    try { send(action, title, text, since, state); } catch {}
++  };
++  const emitSync = (action, title, text, since, state) => {
++    try { sendSync(action, title, text, since, state); } catch {}
++  };
++
++  function clearPending() {
++    if (pendingTimer) { clearTimeout(pendingTimer); pendingTimer = null; }
++    pending = null;
++  }
++
++  function sendUpdate(title, text, since, state) {
++    const t = clock();
++    if (t - lastSent >= throttleMs) {
++      lastSent = t;
++      emit("UPDATE", title, text, since, state);
++      return;
++    }
++    pending = { title, text, since, state };
++    if (pendingTimer) return;
++    pendingTimer = setTimeout(() => {
++      pendingTimer = null;
++      if (!active || !pending) { pending = null; return; }
++      const p = pending;
++      pending = null;
++      lastSent = clock();
++      emit("UPDATE", p.title, p.text, p.since, p.state);
++    }, Math.max(0, throttleMs - (t - lastSent)));
++  }
++
++  function update(text, title, state) {
++    if (!active) return;
++    const t = title || L().working;
++    const x = text || "";
++    const st = state || "working";
++    const key = t + "|" + x + "|" + st;
++    if (key === active.last) return;
++    active.last = key;
++    sendUpdate(t, x, active.startedAt, st);
++  }
++
++  function start(run, text) {
++    if (active) {
++      if (run && run.id) active.id = run.id;
++      return update(text);
++    }
++    clearPending();
++    if (doneTimer) { clearTimeout(doneTimer); doneTimer = null; }
++    if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
++    active = {
++      id: (run && run.id) || "",
++      startedAt: Number(run && run.startedAt) || clock(),
++      last: "",
++    };
++    update(text || L().start, L().working, "working");
++  }
++
++  function finish(reason) {
++    if (!active) return;
++    const ms = Math.max(0, clock() - active.startedAt);
++    active = null;
++    clearPending();
++    if (doneTimer) clearTimeout(doneTimer);
++    doneTimer = setTimeout(() => {
++      doneTimer = null;
++      if (active) return;
++      const live = liveRuns();
++      if (live.length) { start(live[0]); return; }   // 宽限期内又跑起来了
++      const sec = Math.round(ms / 1000);
++      const human = humanDuration(sec, L() === ZH);
++      const text = L().took(human) + (reason ? ` · ${reason}` : "");
++      emit("DONE", L().done, text, 0, "done");
++      if (idleTimer) clearTimeout(idleTimer);
++      idleTimer = setTimeout(() => {
++        idleTimer = null;
++        if (!active) emit("IDLE", L().idleTitle, L().idleText, 0, "idle");
++      }, idleMs);
++    }, graceMs);
++  }
++
++  function handleEvent(ev) {
++    if (!ev || !ev.type) return;
++    switch (ev.type) {
++      case "run_start":
++        start(ev);
++        break;
++      case "state":
++        if (ev.run) start(ev.run);
++        else if (active && !liveRuns().length) finish("");
++        break;
++      case "run_busy":
++        update(L().resume, L().working, "working");
++        break;
++      case "phase":
++        if (ev.phase === "wait") update(L().wait, L().titleWait, "thinking");
++        else if (ev.phase === "think") update(L().think, L().titleThink, "thinking");
++        else if (ev.phase === "text") update(L().text, L().titleText, "writing");
++        else if (ev.phase === "tool") update(L().tool(L().toolName(ev.name)), L().toolTitle(ev.name), toolState(ev.name));
++        else if (ev.phase === "retry") update(L().wait, L().titleRetry, "thinking");
++        break;
++      case "tool_use": {
++        const todo = todoProgress(ev, L());
++        if (todo) update(todo.text, todo.title, todo.state);
++        else update(L().tool(L().toolName(ev.name)), L().toolTitle(ev.name), toolState(ev.name));
++        break;
++      }
++      case "perm_request":
++        update(L().perm(L().toolName(ev.tool || ev.name)), L().waiting, "waiting");
++        break;
++      case "perm_resolved":
++        update(L().resume, L().working, "working");
++        break;
++      case "compacting":
++        update(L().compact, L().titleCompact, "thinking");
++        break;
++      case "sub_progress":
++        update(L().sub(ev.desc || L().start), L().titleSub, "subtask");
++        break;
++      case "run_idle":
++        if (ev.bg > 0) update(L().bg, L().titleBg, "working");
++        break;
++      case "error":
++        update("", L().titleError, "error");   // 不转发 message：可能带路径/命令输出
++        break;
++      case "run_end":
++        if (!active) break;
++        if (liveRuns().length) break;   // 还有别的轮次在跑
++        finish(ev.aborted ? L().aborted : "");
++        break;
++    }
++  }
++
++  function stop(sync = false) {
++    const had = active;
++    active = null;
++    clearPending();
++    if (doneTimer) { clearTimeout(doneTimer); doneTimer = null; }
++    if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
++    if (had) {
++      const fn = sync ? emitSync : emit;
++      fn("IDLE", L().idleTitle, L().idleText, 0, "idle");
++    }
++  }
++
++  return {
++    handleEvent,
++    start,
++    stop,
++    get active() { return active; },
++  };
++}
+diff --git a/gateway/gw/work-island.mjs b/gateway/gw/work-island.mjs
+new file mode 100644
+index 0000000..0a7c9fb
+--- /dev/null
++++ b/gateway/gw/work-island.mjs
+@@ -0,0 +1,112 @@
++// ── 工作岛（可选集成）──────────────────────────────────────────────────────
++// 在网关进程里直接订阅事件总线，把 Claude 的工作状态经 am 送给「工作岛」应用。
++//
++// 约束：
++//  · 不另起进程：没有 detached child、没有 PID 文件、没有看门狗。
++//    网关停，订阅和定时器一起没，不会留孤儿。
++//  · 默认关闭：SETTINGS.workIsland 为 true 才检测应用、开始送状态。
++//  · 只用 Node 内置模块；应用没装就完全不启动。
++//  · 文案跟随 LAST_LANG；中文/英文两套。
++import fs from "node:fs";
++import { execFile, execFileSync } from "node:child_process";
++import { SETTINGS } from "./settings.mjs";
++import { runList } from "./runs.mjs";
++import { onPublish } from "./bus.mjs";
++import { LAST_LANG, log } from "./config.mjs";
++import { createWorkIsland } from "./work-island-core.mjs";
++
++const PKG = process.env.WORK_ISLAND_PKG || "com.dafeiyu.workisland";
++const SVC = PKG + "/.IslandService";
++
++function amArgs(action, title, text, since, state) {
++  const a = ["start-foreground-service", "--user", "0", "-n", SVC, "-a", PKG + "." + action];
++  if (title) a.push("--es", "title", title);
++  if (text) a.push("--es", "text", text);
++  if (state) a.push("--es", "state", state);
++  if (since) a.push("--el", "since", String(since));
++  return a;
++}
++
++let warned = false;
++function amSend(action, title, text, since, state) {
++  execFile("am", amArgs(action, title, text, since, state), { timeout: 8000 }, (e, out, err) => {
++    if (!e || warned) return;
++    warned = true;
++    log(`[work-island] am 失败（应用没装或服务未就绪？后面不再重复）：${e.message} ${String(err || "").slice(0, 120)}`);
++  });
++}
++function amSendSync(action, title, text, since, state) {
++  try {
++    execFileSync("am", amArgs(action, title, text, since, state), { timeout: 3000, stdio: "ignore" });
++  } catch {}
++}
++
++let started = false;
++let detecting = false;
++let unsub = null;
++let core = null;
++
++function isAndroid() {
++  return fs.existsSync("/system/bin/am");
++}
++
++function detectApp(cb) {
++  if (process.env.CCAPP_WORK_ISLAND === "1") return cb(true);
++  if (process.env.CCAPP_WORK_ISLAND === "0") return cb(false);
++  // pm 默认按“当前用户”查；应用 uid 会撞 INTERACT_ACROSS_USERS（asks to run as user 10），
++  // 必须显式 --user 0。包可见性由 AndroidManifest 的 <queries> 解决。
++  execFile("pm", ["list", "packages", "--user", "0", PKG], { timeout: 3000 }, (e, out) => {
++    cb(!e && String(out).includes("package:" + PKG));
++  });
++}
++
++export function startWorkIsland() {
++  if (started || detecting) return;
++  if (!SETTINGS.workIsland) return;              // 默认关，用户开了才动
++  if (process.env.CCAPP_WORK_ISLAND === "0") return;
++  if (!isAndroid()) return;
++  started = true;
++  detecting = true;
++  detectApp((ok) => {
++    detecting = false;
++    if (!started) return;                        // 检测期间被关掉了
++    if (!ok) {
++      started = false;
++      log("[work-island] 没检测到工作岛应用，跳过（装好后可在设置里重开一次）");
++      return;
++    }
++    core = createWorkIsland({
++      send: amSend,
++      sendSync: amSendSync,
++      runs: runList,
++      lang: () => LAST_LANG,
++    });
++    unsub = onPublish((ev) => {
++      try { core.handleEvent(ev); } catch {}
++    });
++    const live = runList().filter((r) => r && !r.ended);
++    if (live.length) core.start(live[0]);        // 开设置时已经有轮次在跑
++    log("[work-island] 已订阅网关事件");
++  });
++}
++
++export function stopWorkIsland(sync = false) {
++  started = false;
++  detecting = false;
++  if (unsub) { try { unsub(); } catch {} unsub = null; }
++  if (core) {
++    try { core.stop(sync); } catch {}
++    core = null;
++  }
++}
++
++/** 网关 SIGTERM：同步发一次 IDLE，让岛收起，再退出。 */
++export function stopWorkIslandSync() {
++  stopWorkIsland(true);
++}
++
++/** 设置页开关变化时调用。 */
++export function applyWorkIslandSetting() {
++  if (SETTINGS.workIsland) startWorkIsland();
++  else stopWorkIsland();
++}
+diff --git a/gateway/server.mjs b/gateway/server.mjs
+index d5bfe69..b4eccd0 100644
+--- a/gateway/server.mjs
++++ b/gateway/server.mjs
+@@ -74,6 +74,7 @@ import { routeProjects } from "./gw/projects.mjs";
+ import { routeSched } from "./gw/sched.mjs";
+ import { routeSessModel } from "./gw/sessmodel.mjs";
+ import { COOKIE, TOKEN, denyLog, denyReason, tokenOk } from "./gw/access.mjs";
++import { startWorkIsland, stopWorkIslandSync } from "./gw/work-island.mjs";
+ 
+ // 各模块的路由函数，按原来分支的先后排；返回 NEXT 表示不归它管
+ const ROUTES = [routeClaude, routeFeedback, routeUsage, routeCaps, routeProviders, routeSettings, routeProjects, routeSched, routeSessModel, routeSessions, routeExtensions, routeModels, routeTerminal, routeComponents, routeModules, routeOrphans, routeCustom, routeGit, routeLocal, routeOffice, routeFiles, routePreview, routeBus, routeQueue, routeDevside, routeLogin, routeRun, routeNotices, routeReconcile];
+@@ -160,6 +161,7 @@ server.listen(CFG.port, "127.0.0.1", () => {
+   try { expireTrash(); } catch (e) { log("回收站清理失败: " + e.message); }
+   try { customRefresh(); } catch (e) { log("自定义组件入口重写失败: " + e.message); }
+   try { cleanOrphans(); } catch (e) { log("旧工具包残留清理失败: " + e.message); }
++  try { startWorkIsland(); } catch (e) { log("工作岛启动失败: " + e.message); }
+ });
+ 
+ // 启动后校验一次模型名：不在清单里就落到默认。
+@@ -180,5 +182,5 @@ setTimeout(async () => {
+   } catch (e) { log(`模型校验失败: ${e.message}`); }
+ }, 2500);
+ 
+-process.on("SIGTERM", () => { for (const t of TERMS.values()) if (t.alive) killTree(t.child); try { bridgeProc?.kill(); } catch {} process.exit(0); });
+-process.on("SIGINT", () => { try { bridgeProc?.kill(); } catch {} process.exit(0); });
++process.on("SIGTERM", () => { try { stopWorkIslandSync(); } catch {} for (const t of TERMS.values()) if (t.alive) killTree(t.child); try { bridgeProc?.kill(); } catch {} process.exit(0); });
++process.on("SIGINT", () => { try { stopWorkIslandSync(); } catch {} try { bridgeProc?.kill(); } catch {} process.exit(0); });
+diff --git a/gateway/tests/work-island.test.mjs b/gateway/tests/work-island.test.mjs
+new file mode 100644
+index 0000000..6a486d4
+--- /dev/null
++++ b/gateway/tests/work-island.test.mjs
+@@ -0,0 +1,152 @@
++// 工作岛核心：状态映射、换轮不误报、中止、确认、节流、中英文
++import { test } from "node:test";
++import assert from "node:assert/strict";
++import { createWorkIsland } from "../gw/work-island-core.mjs";
++
++const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
++
++function make(opts = {}) {
++  const sent = [];
++  let runs = [];
++  const core = createWorkIsland({
++    send: (action, title, text, since, state) => sent.push({ action, title, text, since, state }),
++    runs: () => runs,
++    lang: () => "zh",
++    graceMs: 20,
++    idleMs: 30,
++    throttleMs: 0,
++    ...opts,
++  });
++  return { core, sent, setRuns: (r) => { runs = r; } };
++}
++
++test("开始与工具：先「正在干活」，再跟着 tool_use 变", () => {
++  const { core, sent } = make();
++  core.handleEvent({ type: "run_start", startedAt: Date.now() });
++  assert.equal(sent.at(-1).action, "UPDATE");
++  assert.equal(sent.at(-1).title, "正在干活");
++  assert.equal(sent.at(-1).text, "正在处理…");
++  core.handleEvent({ type: "tool_use", name: "Read" });
++  assert.equal(sent.at(-1).title, "读文件");
++  assert.equal(sent.at(-1).text, "用 读文件…");
++  assert.equal(sent.at(-1).state, "reading");
++});
++
++test("清单：TodoWrite 显示已完成/总数", () => {
++  const { core, sent } = make();
++  core.handleEvent({ type: "run_start", startedAt: Date.now() });
++  core.handleEvent({
++    type: "tool_use",
++    name: "TodoWrite",
++    input: {
++      todos: [
++        { status: "completed" },
++        { status: "completed" },
++        { status: "pending" },
++        { status: "in_progress" },
++        { status: "pending" },
++      ],
++    },
++  });
++  assert.equal(sent.at(-1).title, "整理清单");
++  assert.equal(sent.at(-1).text, "清单 2/5");
++  assert.equal(sent.at(-1).state, "planning");
++});
++
++test("完成：任务完成 + 用时，8 秒后收起", async () => {
++  const { core, sent, setRuns } = make();
++  core.handleEvent({ type: "run_start", startedAt: Date.now() });
++  setRuns([]);
++  core.handleEvent({ type: "run_end" });
++  await sleep(40);
++  const done = sent.find((x) => x.action === "DONE");
++  assert.ok(done, "应发 DONE");
++  assert.equal(done.title, "任务完成");
++  assert.equal(done.state, "done");
++  assert.match(done.text, /^用时 /);
++  await sleep(50);
++  assert.ok(sent.some((x) => x.action === "IDLE"), "应发 IDLE");
++});
++
++test("换轮：另一个轮次还在跑，不报完成", async () => {
++  const { core, sent, setRuns } = make();
++  core.handleEvent({ type: "run_start", startedAt: Date.now() });
++  setRuns([{ id: "r2", startedAt: Date.now() }]);
++  core.handleEvent({ type: "run_end", runId: "r1" });
++  await sleep(40);
++  assert.ok(!sent.some((x) => x.action === "DONE"));
++});
++
++test("宽限期内来了新的一轮：取消完成", async () => {
++  const { core, sent, setRuns } = make();
++  core.handleEvent({ type: "run_start", startedAt: Date.now() });
++  setRuns([]);
++  core.handleEvent({ type: "run_end" });
++  await sleep(5);
++  core.handleEvent({ type: "run_start", startedAt: Date.now() });
++  await sleep(50);
++  assert.ok(!sent.some((x) => x.action === "DONE"));
++});
++
++test("中止：完成文案带「已中止」", async () => {
++  const { core, sent, setRuns } = make();
++  core.handleEvent({ type: "run_start", startedAt: Date.now() });
++  setRuns([]);
++  core.handleEvent({ type: "run_end", aborted: true });
++  await sleep(40);
++  assert.match(sent.find((x) => x.action === "DONE").text, /已中止/);
++});
++
++test("等确认：标题变「等你确认」，文案带工具名", () => {
++  const { core, sent } = make();
++  core.handleEvent({ type: "run_start", startedAt: Date.now() });
++  core.handleEvent({ type: "perm_request", tool: "Bash" });
++  assert.equal(sent.at(-1).title, "等你确认");
++  assert.match(sent.at(-1).text, /执行命令/);
++});
++
++test("错误：标题「出错了」，不转发 message", () => {
++  const { core, sent } = make();
++  core.handleEvent({ type: "run_start", startedAt: Date.now() });
++  core.handleEvent({ type: "error", message: "/secret/path token=abc" });
++  assert.equal(sent.at(-1).title, "出错了");
++  assert.equal(sent.at(-1).text, "");
++  assert.equal(sent.at(-1).state, "error");
++  assert.ok(!JSON.stringify(sent.at(-1)).includes("secret"));
++});
++
++test("英文：Working / Using a command…", () => {
++  const { core, sent } = make({ lang: () => "en" });
++  core.handleEvent({ type: "run_start", startedAt: Date.now() });
++  assert.equal(sent.at(-1).title, "Working");
++  core.handleEvent({ type: "tool_use", name: "Bash" });
++  assert.equal(sent.at(-1).title, "Running");
++  assert.equal(sent.at(-1).text, "Using a command…");
++  assert.equal(sent.at(-1).state, "running");
++});
++
++test("节流：一秒半内只发一条，补发最后那条", async () => {
++  const { core, sent } = make({ throttleMs: 50 });
++  core.handleEvent({ type: "run_start", startedAt: Date.now() });
++  sent.length = 0;                       // 忽略 start 那一条
++  core.handleEvent({ type: "phase", phase: "think" });
++  core.handleEvent({ type: "phase", phase: "text" });
++  assert.equal(sent.length, 0, "节流窗口内不应发");
++  await sleep(70);
++  assert.equal(sent.length, 1, "应补发一条");
++  assert.equal(sent[0].text, "正在写回复…", "补发的是最后那条");
++});
++
++test("关掉开关：有活动时发一次 IDLE", () => {
++  const { core, sent } = make();
++  core.handleEvent({ type: "run_start", startedAt: Date.now() });
++  sent.length = 0;
++  core.stop();
++  assert.equal(sent.at(-1).action, "IDLE");
++});
++
++test("关掉开关：没有活动时不发", () => {
++  const { core, sent } = make();
++  core.stop();
++  assert.equal(sent.length, 0);
++});
+diff --git a/gateway/web/app/12-model-caps.js b/gateway/web/app/12-model-caps.js
+index bfc6da4..beeb3a0 100644
+--- a/gateway/web/app/12-model-caps.js
++++ b/gateway/web/app/12-model-caps.js
+@@ -374,6 +374,7 @@
+       if (pe && document.activeElement !== pe) { pe.max = state.settings.maxParallelCap || 16; pe.value = state.settings.maxParallel || 3; }
+       $("set-static").checked = state.settings.staticCompat !== false;
+       $("set-idlecompact").checked = state.settings.idleCompaction !== false;
++      $("set-workisland").checked = state.settings.workIsland === true;
+       loadExecMode();
+     } catch {}
+   }
+@@ -448,6 +449,7 @@
+     loadExecMode();
+   });
+   $("set-idlecompact").addEventListener("change", (e) => saveSettings({ idleCompaction: e.target.checked }));
++  $("set-workisland").addEventListener("change", (e) => saveSettings({ workIsland: e.target.checked }));
+   $("set-parallel").addEventListener("change", (e) => {
+     const v = Math.round(Number(e.target.value));
+     if (!(v >= 1)) { e.target.value = state.settings.maxParallel || 3; return; }
+diff --git a/gateway/web/index.html b/gateway/web/index.html
+index 2ee49b9..08dc410 100644
+--- a/gateway/web/index.html
++++ b/gateway/web/index.html
+@@ -509,6 +509,10 @@
+             <div class="sl"><b data-i18n>空闲压缩</b><p data-i18n>长会话闲置快一小时时先压缩</p><p class="clamp" data-i18n>只对 Claude 账户和 Anthropic API Key 生效。上下文超过 20 万 token 的会话闲置约 54 分钟、1 小时提示缓存快过期时，先压缩一次；回来接着聊就不用把整段历史按全价重新处理，订阅账户少占额度，API Key 少花钱。电脑上的 Claude Code 也是这么做的。</p></div>
+             <div class="sc"><input type="checkbox" class="sw" id="set-idlecompact"></div>
+           </div>
++          <div class="srow">
++            <div class="sl"><b data-i18n>工作岛（ColorOS 灵动岛）</b><p data-i18n>把 Claude 的工作状态显示在 ColorOS 16 的流体云 / 灵动岛上</p><p class="clamp" data-i18n>需要另外安装「工作岛」应用。开启后，正在干活、等待确认、任务完成会出现在岛上的胶囊里；完成后 8 秒自动收起。目前仅在 ColorOS 16 / Android 16 上测试过。</p></div>
++            <div class="sc"><input type="checkbox" class="sw" id="set-workisland"></div>
++          </div>
+           <div class="sblock" id="dir-field">
+             <div class="srow head">
+               <div class="sl"><b data-i18n>附加目录</b><p data-i18n>--add-dir，让 claude 能读写工作区之外的目录</p><p class="clamp" data-i18n>让 claude 能读写工作区之外的目录。这些目录同时会成为文件浏览器的快捷入口。</p></div>

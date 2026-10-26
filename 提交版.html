@@ -1,0 +1,2623 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>工作岛 · 方案与设计</title>
+<style>
+    @page { size: A4; margin: 17mm 16mm 18mm 16mm; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", "sans-serif";
+      color: #24221f; font-size: 10.2pt; line-height: 1.72;
+    }
+    .cover {
+      background: #1F1E1D; color: #FAF9F5; height: 240mm; padding: 26mm 20mm;
+      box-sizing: border-box; page-break-after: always; position: relative;
+    }
+    .cover .kicker { color: #D97757; letter-spacing: 2.4px; font-size: 8.5pt; }
+    .cover .logo { width: 34mm; height: 34mm; margin-top: 22mm; border-radius: 8mm; }
+    .cover h1 { color: #FAF9F5; font-size: 46pt; margin: 4mm 0 2mm; letter-spacing: 2px; }
+    .cover .sub { color: #C9C4BA; font-size: 14pt; margin: 0; }
+    .cover .rule { width: 34mm; height: 2px; background: #D97757; margin: 12mm 0; }
+    .cover .meta div { margin: 2.4mm 0; color: #E8E4DA; font-size: 9.5pt; }
+    .cover .meta span { display: inline-block; width: 22mm; color: #8F8A80; }
+    .cover .hash { position: absolute; bottom: 22mm; left: 20mm; right: 20mm;
+      color: #6F6B64; font-size: 7.2pt; line-height: 1.6; word-break: break-all; }
+    .toc { page-break-after: always; }
+    .toc h2 { font-size: 22pt; color: #1F1E1D; border-bottom: 2px solid #D97757;
+      padding-bottom: 2mm; margin-bottom: 5mm; }
+    .toc-lead { color: #57534D; font-size: 10.5pt; margin: 0 0 7mm; }
+    .toc-table td { font-size: 9.6pt; padding: 3mm 3mm; }
+    .toc-table td:first-child { width: 30mm; font-weight: 600; color: #1F1E1D; }
+    .toc-note { margin-top: 12mm; padding: 5mm 6mm; background: #F6F3EE;
+      border-left: 4px solid #D97757; }
+    .toc-note b { color: #1F1E1D; font-size: 11pt; }
+    .toc-note li { margin: 2.8mm 0; font-size: 9.6pt; }
+    .page-break { page-break-before: always; }
+    .doc-title { font-size: 9pt; color: #D97757; letter-spacing: 2px;
+      border-top: 1px solid #D97757; padding-top: 2mm; margin-bottom: 6mm; }
+    h1 { font-size: 22pt; line-height: 1.3; margin: 0 0 4mm; color: #1F1E1D; }
+    h2 { font-size: 15pt; margin: 8mm 0 3mm; color: #1F1E1D;
+      border-left: 4px solid #D97757; padding-left: 3mm; }
+    h3 { font-size: 12pt; margin: 6mm 0 2mm; color: #3A3835; }
+    p { margin: 0 0 2.6mm; }
+    ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+    li { margin: 1.2mm 0; }
+    blockquote { margin: 4mm 0; padding: 3mm 4mm; background: #F6F3EE;
+      border-left: 3px solid #D97757; color: #57534D; }
+    code { font-family: "Noto Sans Mono CJK SC", "monospace"; font-size: 8.8pt;
+      background: #F1EEE8; padding: 0.4mm 1.2mm; border-radius: 2px; }
+    pre { background: #F4F1EB; border: 1px solid #E3DED5; border-left: 3px solid #D97757;
+      padding: 3.2mm 4mm; overflow-x: hidden; white-space: pre-wrap;
+      word-break: break-all; page-break-inside: avoid; }
+    pre code { background: none; padding: 0; font-size: 8.4pt; }
+    table { width: 100%; border-collapse: collapse; margin: 3mm 0 4mm;
+      font-size: 9pt; page-break-inside: avoid; }
+    th { background: #1F1E1D; color: #FAF9F5; text-align: left;
+      padding: 2mm 2.4mm; font-weight: 600; }
+    td { border-bottom: 1px solid #E3DED5; padding: 1.8mm 2.4mm; vertical-align: top; }
+    tr:nth-child(even) td { background: #FAF9F5; }
+    a { color: #B85C3E; text-decoration: none; }
+    hr { border: none; border-top: 1px solid #E3DED5; margin: 6mm 0; }
+    .gallery h2 { border-left: 4px solid #D97757; padding-left: 3mm; }
+    .grid { display: flex; flex-wrap: wrap; gap: 5mm; justify-content: center; }
+    figure { margin: 0; width: 43%; page-break-inside: avoid; }
+    figure img { width: 100%; border: 1px solid #D8D2C8; border-radius: 3mm; }
+    figcaption { font-size: 8pt; color: #6F6B64; text-align: center; margin-top: 1.6mm; }
+    </style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="kicker">ANDROID 16 · COLOROS 16 · LIVE UPDATES</div>
+  <img class="logo" src="source/app/res/mipmap-xxxhdpi/ic_launcher.png" alt="工作岛图标">
+  <h1>工作岛</h1>
+  <p class="sub">把 Claude 的工作状态，放到灵动岛上</p>
+  <div class="rule"></div>
+  <div class="meta">
+    <div><span>宿主</span>cccodroid 0.4.2</div>
+    <div><span>设备</span>OnePlus PJA110 · ColorOS 16.0.3</div>
+    <div><span>应用</span>com.dafeiyu.workisland 1.4</div>
+    <div><span>状态</span>测试阶段 · 仅 ColorOS 16 / Android 16 验证</div>
+    <div><span>日期</span>2026-10-26</div>
+  </div>
+  <div class="hash">APK SHA-256<br>6484f58e1c298784d765c18c1dc35aabe11004cdff037440774b074140caa8ca</div>
+</section>
+
+<section class="toc">
+  <h2>目录</h2>
+  <p class="toc-lead">这份材料按“为什么做 → 怎么设计 → 怎么实现 → 怎么验证 → 怎么提交”组织。</p>
+  <table class="toc-table">
+    <tr><th>文档</th><th>内容</th></tr>
+    <tr><td>测试状态</td><td>仅在 ColorOS 16 / Android 16 验证；未验证项、已知限制、反馈方式</td></tr>
+    <tr><td>项目说明</td><td>一句话、交付物、快速开始、测试环境</td></tr>
+    <tr><td>一、方案与设计</td><td>背景与问题、总体架构、状态机、事件文案、收工判定、关键技术、安全与限制</td></tr>
+    <tr><td>二、开发与部署</td><td>目录落点、构建链、安装、网关接入、driver 部署、保活、调试、回滚</td></tr>
+    <tr><td>三、测试报告</td><td>12 个用例、关键日志、截图索引、6 个问题与修复</td></tr>
+    <tr><td>四、提交说明</td><td>验收步骤、设计要点、已知限制、变更记录</td></tr>
+    <tr><td>五、开发过程与真机测试</td><td>时间线、踩坑与修法、全部真机测试记录、过程链接</td></tr>
+    <tr><td>六、状态与保活</td><td>标题跟随动作、四态 bot 与标识、清单进度、后台保活与自动恢复</td></tr>
+  </table>
+  <div class="toc-note">
+    <b>三个非显然结论</b>
+    <ol>
+      <li>ColorOS 16 的流体云直接接 Android 16 Live Updates，不需要 OPPO 私有白名单。</li>
+      <li>ColorOS 会在后台冻结应用（连前台服务也冻），所以定时器必须放在网关 driver 里。</li>
+      <li>收工要看 <code>runs</code> 而不是 <code>run</code>，并且要二次复查 + 3 秒宽限，否则会提前报完成。</li>
+    </ol>
+  </div>
+</section><article class="doc page-break"><div class="doc-title">测试状态</div><h1 id="_1">测试状态</h1>
+<blockquote>
+<p><strong>当前状态：测试阶段（Pre-release / Alpha）</strong></p>
+<p><strong>目前只在一种设备组合上测试成功：</strong>
+<strong>OnePlus PJA110 · ColorOS 16.0.3 · Android 16（SDK 36）· cccodroid 0.4.2。</strong></p>
+</blockquote>
+<p>项目仍在测试阶段：接口、通知文案、网关接入方式和文件布局都可能继续变动，<strong>不建议用于生产或关键任务</strong>。</p>
+<hr>
+<h2 id="_2">已验证</h2>
+<ul>
+<li>ColorOS 16 流体云能接住 Android 16 Live Update（<code>PROMOTED_ONGOING</code> 实测出现）</li>
+<li>工作态「正在干活」、完成态「任务完成」、8 秒后收起</li>
+<li>并行轮次结束不会误报完成</li>
+<li>driver 被杀后由守护循环/网关看门狗拉起</li>
+<li>cccodroid 与工作岛都退到后台 8 秒，driver、网关、前台服务仍存活</li>
+<li>构建、签名、安装、通知授权在设备上通过</li>
+<li>四态 bot（Wakes/Works/Asks/Done）、14 look、7 个标识在真机上目视通过</li>
+<li>21 个模型的轮廓/配色/眼睛/装饰全部渲染通过（对照表 <code>screenshots/10-bot-states.png</code>）</li>
+<li>通知大/小图标与岛上胶囊显示同一只 bot；<code>!</code> / <code>?</code> / <code>≡</code> / <code>×</code> / <code>z</code> 实测可见</li>
+</ul>
+<h2 id="_3">未验证</h2>
+<ul>
+<li>其他 ColorOS 版本（如 15、17）与其他机型</li>
+<li>其他厂商的“灵动岛 / 实时活动”实现（HyperOS、OriginOS、One UI、MagicOS 等）</li>
+<li>开发端网关（8790）与 cccodroid（8791）的差异场景</li>
+<li>重启开机自启（<code>BOOT_COMPLETED</code> 已声明，未做整机重启验证）</li>
+<li>长时间 Doze（30 分钟以上）</li>
+<li>force-stop 后的自动恢复</li>
+<li>多轮并行时的文案归属（收工判定已按 <code>runs</code> 处理，文案可能跟随最后事件）</li>
+</ul>
+<h2 id="_4">已知限制</h2>
+<ul>
+<li>cccodroid 被强行停止后，网关与 driver 都会消失，岛上会停在最后状态；重开 cccodroid 恢复。</li>
+<li>ColorOS 会在后台冻结应用（<code>do_freezer_trap</code>，前台服务也冻），所以定时器放在网关 driver，而不是应用里。</li>
+<li>cccodroid 升级可能覆盖 <code>files/app</code> 下的网关文件，需要重新接入。</li>
+<li>工作岛的服务是 exported 的，同机应用可以伪造显示状态（仅影响显示）；生产化需加签名级权限。</li>
+<li>胶囊外观由系统绘制，未使用 OPPO UPK 自定义卡片。</li>
+<li>通知图标是静态帧：四态和标识准确，但呼吸/眨眼/起跳只在应用内预览里动。</li>
+<li>21 个模型图标是 LobeHub 的品牌标识，公开发布前请自行确认商标使用。</li>
+</ul>
+<h2 id="_5">反馈</h2>
+<p>如果你在别的 ColorOS 版本或机型上试了，欢迎带上：</p>
+<ul>
+<li>机型、ColorOS 版本、Android 版本</li>
+<li><code>dumpsys notification --noredact | grep -A1 "pkg=com.dafeiyu.workisland"</code> 的 flags 行</li>
+<li>现象截图</li>
+</ul>
+<p>这些信息足够判断是“没推广”“被冻结”还是“收工判定”的问题。</p></article><article class="doc page-break"><div class="doc-title">项目说明</div><h1 id="workisland">工作岛 · WorkIsland</h1>
+<blockquote>
+<p><strong>测试状态：Pre-release / Alpha</strong>
+目前<strong>只在 OnePlus PJA110 · ColorOS 16.0.3 · Android 16（SDK 36）· cccodroid 0.4.2–0.4.6</strong> 上测试成功。
+其他 ColorOS 版本、其他品牌机型均未验证；接口与文件布局可能继续变动，不建议用于生产或关键任务。
+详细边界见 <a href="STATUS.md"><code>STATUS.md</code></a>。</p>
+</blockquote>
+<p>把 <strong>cccodroid 里 Claude 的实时工作状态</strong>，投到 <strong>ColorOS 16 的流体云 / 灵动岛</strong>上。</p>
+<ul>
+<li>干活时：胶囊标题跟着动作走——读文件 / 执行命令 / 思考中 / 等你确认；下面跟着更细的描述</li>
+<li><code>TodoWrite</code> 任务清单会显示「清单 x/y」</li>
+<li>收工：写「任务完成」+ 用时</li>
+<li>8 秒后：岛上收起，通知栏只留一条安静的「工作岛 · 在后台等下一轮」</li>
+<li><strong>四态 bot</strong>：Wakes / Works / Asks / Done；14 种 look、7 个头顶标识（<code>! ? ≡ × ⧗ … z</code>）</li>
+<li><strong>21 个模型</strong>：每个 agent 有自己的形状、配色、眼睛，Claude 有手脚、DeepSeek 有肚子、Grok 有环、Cursor 缺一角、OpenClaw 有触须</li>
+<li><strong>可关</strong>：设置里的「程序化 bot」开关关掉就退回旧的简笔图标</li>
+<li><strong>岛上不空</strong>：折叠胶囊显示「思考中 1/4」这种状态 + 清单进度；展开后有计时、副标题和分段进度条</li>
+<li><strong>会动</strong>：思考时头顶省略号逐帧跳、眼睛左右瞟、身体轻浮；每轮开始有 0.4 秒 logo→bot 的唤醒</li>
+</ul>
+<p>不是另开一个任务清单，也不是模拟动画——数据直接来自 cccodroid 网关的真实事件流。</p>
+<table>
+<thead>
+<tr>
+<th>正在干活</th>
+<th>任务完成</th>
+<th>8 秒后收起</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="screenshots/01-working.png" width="230"></td>
+<td><img src="screenshots/02-done.png" width="230"></td>
+<td><img src="screenshots/03-idle.png" width="230"></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>四态 bot（应用内预览）</th>
+<th>21 个模型 / 14 个 look</th>
+<th>通知里也带上标识</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="screenshots/09-bot-preview.png" width="230"></td>
+<td><img src="screenshots/10-bot-states.png" width="230"></td>
+<td><img src="screenshots/11-notification-bot.png" width="230"></td>
+</tr>
+</tbody>
+</table>
+<p>更多截图见 <code>screenshots/</code>（含四态 bot、模型对照、岛上 <code>!</code> 标识、图标选择器），完整边界见 <a href="STATUS.md"><code>STATUS.md</code></a>，方案见 <a href="docs/01-方案与设计.md"><code>docs/01-方案与设计.md</code></a>。</p>
+<p><strong>下载</strong>：<a href="https://github.com/STUTTEFRFIX/WorkIsland-Android/releases">Release 页面</a> · 1.4 的 APK 与 PDF 也在本仓库 <code>apk/</code>、<code>pdf/</code> 里。</p>
+<hr>
+<h2 id="_1">交付物</h2>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>apk/WorkIsland.apk</code></td>
+<td>可直接安装的 APK（<code>com.dafeiyu.workisland</code>，versionName 1.4）</td>
+</tr>
+<tr>
+<td><code>source/app/</code></td>
+<td>Android 16 Live Update 应用源码（Java + 资源 + 构建脚本）</td>
+</tr>
+<tr>
+<td><code>source/driver/driver.mjs</code></td>
+<td>独立状态驱动：0.4.2–0.4.6 的部署方式</td>
+</tr>
+<tr>
+<td><code>source/gateway/work-island.mjs</code></td>
+<td>0.4.2–0.4.6 的网关模块（spawn 独立 driver）</td>
+</tr>
+<tr>
+<td><code>source/gateway/server.mjs</code></td>
+<td>0.4.2–0.4.6 已接入的网关入口（原文件见 <code>server.mjs.original</code>）</td>
+</tr>
+<tr>
+<td><code>source/upstream-pr/</code></td>
+<td>上游 PR #21 合并版 + #22 跟进（网关内订阅 / 清单 / state / 单测 19 条）</td>
+</tr>
+<tr>
+<td><code>source/upstream-pr-review.patch</code></td>
+<td>上游 PR #21 的完整 diff</td>
+</tr>
+<tr>
+<td><code>source/upstream-pr-review-22.patch</code></td>
+<td>上游 PR #22（OPEN）的完整 diff</td>
+</tr>
+<tr>
+<td><code>screenshots/</code></td>
+<td>工作态、完成态、收起、后台存活、应用界面截图</td>
+</tr>
+<tr>
+<td><code>docs/</code></td>
+<td>方案与设计、开发部署、测试报告、提交说明、开发过程与真机测试、状态与保活</td>
+</tr>
+</tbody>
+</table>
+<p>APK 校验：</p>
+<pre><code>SHA-256  98c6082527f4f349fd45b1f46c8de79e5e3dc82745099a62c47652627ba9bbb2
+大小     338,665 字节
+</code></pre>
+<hr>
+<h2 id="_2">快速开始</h2>
+<ol>
+<li>安装 <code>apk/WorkIsland.apk</code>。</li>
+<li>打开「工作岛」，确认三行状态：
+   - 通知：开
+   - 实时更新：允许
+   - 电池：不优化</li>
+<li>接入网关：
+   - <strong>ccc odroid 0.4.7+</strong>：设置 → 工作岛（ColorOS 灵动岛）→ 打开，重启一次网关。
+   - <strong>0.4.2–0.4.6</strong>：按 <code>docs/02-开发与部署.md</code> 第 4 节接入独立 driver。</li>
+<li>在 cccodroid 里让 Claude 干一次活，看岛。</li>
+</ol>
+<hr>
+<h2 id="_3">测试环境</h2>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>设备</td>
+<td>OnePlus PJA110</td>
+</tr>
+<tr>
+<td>系统</td>
+<td>ColorOS 16.0.3（Android 16 / SDK 36）</td>
+</tr>
+<tr>
+<td>cccodroid</td>
+<td>0.4.2</td>
+</tr>
+<tr>
+<td>网关</td>
+<td>127.0.0.1:8791</td>
+</tr>
+<tr>
+<td>应用</td>
+<td>com.dafeiyu.workisland 1.4</td>
+</tr>
+<tr>
+<td>构建</td>
+<td>aapt2 2.20-android-16 / d8 9.2.4 / apksigner 0.9 / javac 21</td>
+</tr>
+<tr>
+<td>编译 SDK</td>
+<td>Android 16 platform-36（android.jar）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="_4">一句话设计</h2>
+<blockquote>
+<p><strong>网关负责“知道”，模块负责“判断”，工作岛负责“画”。</strong>
+定时器和事件流不放在会被 ColorOS 冻结的应用里，放在网关进程里。</p>
+</blockquote>
+<p>0.4.7 起上游改为进程内订阅（<code>onPublish</code> + <code>runList</code>），不再单独起 driver；本仓库的 <code>source/driver/</code> 是 0.4.2–0.4.6 的部署方式。两种方式发送给同一个应用。</p>
+<p>详细设计见 <a href="docs/01-方案与设计.md"><code>docs/01-方案与设计.md</code></a>。</p>
+<hr>
+<h2 id="_5">参考与致谢</h2>
+<ul>
+<li><a href="https://github.com/jazzenchen/agent-hud-open">jazzenchen/agent-hud-open</a>
+  （Apache-2.0）：四态 bot、14 look、7 个标识、BotSpec 与渲染几何的移植来源。</li>
+<li><a href="https://github.com/greyoak111/cccodroid">cccodroid</a>：网关事件流、终端与宿主能力。</li>
+<li><a href="https://github.com/lobehub/lobe-icons">LobeHub Icons</a>（MIT）：21 个模型图标；
+  商标归各自所有者，非官方关联。</li>
+</ul>
+<hr>
+<h2 id="_6">许可与第三方说明</h2>
+<p>本项目使用 <strong>Apache-2.0</strong>，见 <a href="LICENSE"><code>LICENSE</code></a>。</p>
+<p>第三方图标与许可：Agent HUD 图标（Apache-2.0）、LobeHub 模型图标（MIT），
+详见 <a href="THIRD_PARTY.md"><code>THIRD_PARTY.md</code></a> 与 <a href="LICENSES/"><code>LICENSES/</code></a>。</p>
+<blockquote>
+<p>工作岛是<strong>第三方应用的可选集成</strong>：cccodroid 只负责把状态送出来，不包含也不负责本应用的功能。</p>
+</blockquote></article><article class="doc page-break"><div class="doc-title">一、方案与设计</div><h1 id="_1">工作岛 · 方案与设计</h1>
+<blockquote>
+<p>版本 1.4 · 2026-10-26
+设备：OnePlus PJA110 · ColorOS 16.0.3（Android 16 / SDK 36）
+宿主：cccodroid 0.4.2（包名 <code>cc.codroid</code>）</p>
+</blockquote>
+<hr>
+<h2 id="_2">摘要</h2>
+<p>「工作岛」把 cccodroid 里 Claude 的实时运行状态，显示在 ColorOS 16 的流体云（灵动岛）上：</p>
+<ul>
+<li>进行中：<strong>正在干活</strong> + 当前动作（用执行命令 / 正在想 / 等你确认…）</li>
+<li>完成：<strong>任务完成</strong> + 用时</li>
+<li>8 秒后：岛上收起，通知栏保留一条安静的「在后台等下一轮」</li>
+</ul>
+<p>数据不是模拟的，来自 cccodroid 网关的真实事件流（<code>/api/events</code>、<code>/api/state</code>）。整个方案不修改 cccodroid 的 Java 代码，只做两处可回退的网关接入。</p>
+<hr>
+<h2 id="1">1. 背景与问题</h2>
+<p>cccodroid 是运行在 Android 上的 Claude Code 宿主：它有一个 Node 网关（<code>server.mjs</code>，监听 <code>127.0.0.1:8791</code>），负责会话、运行队列、事件流和通知。</p>
+<p>原生通知是普通通知，不会自动变成 ColorOS 的流体云胶囊。要上岛，需要 Android 16 的 <strong>Live Updates</strong>（实时更新）资格：</p>
+<ul>
+<li>通知使用 <code>Notification.ProgressStyle</code> 等标准样式；</li>
+<li>声明 <code>POST_PROMOTED_NOTIFICATIONS</code> 权限；</li>
+<li>通知为 ongoing，带标题，不使用自定义视图；</li>
+<li>通过 <code>android.requestPromotedOngoing</code> 请求推广（promoted）。</li>
+</ul>
+<p>在实现过程中遇到并解决了四个真问题：</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>现象</th>
+<th>根因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>普通通知不上岛</td>
+<td>只有通知栏，没有胶囊</td>
+<td>没有 promoted / ProgressStyle</td>
+</tr>
+<tr>
+<td>完成后不收起</td>
+<td>岛上一直挂着「正在干活」</td>
+<td>监听器跟着单轮 Claude 进程被收走</td>
+</tr>
+<tr>
+<td>定时器不生效</td>
+<td>「任务完成」永不收起</td>
+<td>ColorOS 把应用冻住（<code>do_freezer_trap</code>），进程内定时器不走</td>
+</tr>
+<tr>
+<td>提前报完成</td>
+<td>还在干活就显示「任务完成」</td>
+<td>把「最近一轮」当成「所有轮次」，换轮空隙 <code>run</code> 短暂为空</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="2">2. 目标与非目标</h2>
+<h3 id="_3">目标</h3>
+<ol>
+<li>岛上显示 <strong>真实</strong> 的 Claude 工作状态（阶段 / 工具 / 完成），不是写死动画。</li>
+<li>视觉与 cccodroid 统一：深色 <code>#1F1E1D</code>、陶土色 <code>#D97757</code>、鱼形图标。</li>
+<li>后台可用：cccodroid 切后台、工作岛切后台、屏幕关闭时仍能更新。</li>
+<li>收工准确：只有所有运行轮次都结束才报完成；连续两轮之间不闪「完成」。</li>
+<li>可回退：对 cccodroid 的改动只有两个文件，原文件有备份。</li>
+</ol>
+<h3 id="_4">非目标</h3>
+<ul>
+<li>不接管 cccodroid 的聊天 UI、不修改它的 Java/ dex。</li>
+<li>不做到「ccc odroid 被强行停止后仍然工作」——没有宿主就没有任务可显示。</li>
+<li>不自定义胶囊的像素级外观（胶囊由系统绘制，第三方只能控制图标、标题、文本、进度）。</li>
+<li>不承诺跨设备通用：当前实现针对 Android 16 / ColorOS 16。</li>
+</ul>
+<hr>
+<h2 id="3">3. 总体架构</h2>
+<p>三层，职责单一：</p>
+<pre><code>┌────────────────────────── cccodroid（uid 10546） ──────────────────────────┐
+│  WebView 聊天 UI                                                           │
+│        │                                                                   │
+│  GatewayService（前台服务，specialUse）                                    │
+│        │ 启动                                                              │
+│  node server.mjs  :8791                                                    │
+│    ├─ /api/state        当前 run / runs / queue / provider                 │
+│    ├─ /api/events       SSE：run_start / phase / tool_use / perm / run_end │
+│    ├─ gw/work-island.mjs  网关启动时 spawn driver，每 30s 看一次存活       │
+│    └─ driver.mjs        跑在网关进程树里（ptyhost→bash 或 detached child）  │
+│             │  带 X-CC-Token 订阅 /api/events                              │
+│             │  状态 → am start-foreground-service --user 0                │
+└─────────────┼──────────────────────────────────────────────────────────────┘
+              ▼
+┌────────────────── 工作岛 com.dafeiyu.workisland（uid 10549） ──────────────┐
+│  IslandService（前台服务，specialUse）                                     │
+│    START / UPDATE → ID 1001：ProgressStyle + promoted + 计时器             │
+│    DONE           → ID 1001：「任务完成」                                  │
+│    IDLE（完成 8s 后）→ ID 1002：安静通知，取消 1001，岛上收起              │
+│  Notifier：channel `work`，深色 + 陶土色 + 鱼图标                          │
+└────────────────────────────────────────────────────────────────────────────┘
+</code></pre>
+<p>一句话：</p>
+<blockquote>
+<p><strong>网关负责“知道”，模块负责“判断”，工作岛负责“画”。</strong></p>
+<p>0.4.7 起上游采用进程内订阅（<code>onPublish</code> + <code>runList</code>），本仓库的独立 driver 是 0.4.2–0.4.6 的部署方式；两者发送给同一个应用。</p>
+</blockquote>
+<hr>
+<h2 id="4">4. 运行流程</h2>
+<h3 id="41">4.1 首次接入</h3>
+<ol>
+<li>安装 <code>WorkIsland.apk</code>，授予通知权限。</li>
+<li>系统设置里开启「允许实时更新」（<code>canPostPromotedNotifications()</code> 为 true）。</li>
+<li>网关启动时执行 <code>server.mjs</code> 里的 <code>startWorkIsland()</code>：
+   - 读取 <code>~/.work-island.pid</code>，若对应进程仍活着就复用；
+   - 否则 <code>spawn(process.execPath, [driver.mjs])</code>，<code>detached + unref</code>，并删除环境里的 <code>CCAPP_RUN</code>（避免被网关的孤儿清理误杀）。</li>
+<li>driver 读取 <code>~/.gateway-token</code>（0600，仅 cccodroid uid 可读），订阅 <code>http://127.0.0.1:8791/api/events</code>。</li>
+<li>driver 通过 <code>am start-foreground-service --user 0</code> 驱动工作岛；工作岛拉起前台服务并画通知。</li>
+</ol>
+<h3 id="42">4.2 一轮任务</h3>
+<pre><code>用户发消息
+  → 网关 run_start
+  → driver 置 working，发 UPDATE「正在干活 / 正在处理…」
+  → 模型思考 / 调工具：phase=think / tool / tool_use
+  → 岛上实时更新「正在想…」「用 执行命令…」
+  → 权限确认：perm_request → 「等你确认」
+  → 回答后：perm_resolved → 「继续…」
+  → run_end
+  → driver 不立刻报完成，先等 2.5s 回 /api/state 复查
+       ├─ runs 还有 → 说明是别的轮次结束，忽略
+       └─ runs 为空 → 进入 3s 宽限
+              ├─ 3s 内来了新 run_start → 取消完成，接着干
+              └─ 没有新 run → 发 DONE「任务完成 / 用时 X」
+                     └─ 8s 后发 IDLE → 换成 ID 1002 安静通知，岛上收起
+</code></pre>
+<h3 id="43">4.3 状态机</h3>
+<pre><code>             run_start / state.runs 非空
+   idle ───────────────────────────────► working
+     ▲                                      │
+     │                                      │ runs 空 + 2.5s 复查
+     │                                      ▼
+     │       8s 后 IDLE                 pending-done
+     └──────────────────────────────────────┤
+                                            │ 3s 宽限内无新 run
+                                            ▼
+                                          done
+                                            │ 3s 内新 run_start
+                                            └────► working（取消完成）
+</code></pre>
+<hr>
+<h2 id="5">5. 事件到文案</h2>
+<p>driver 把网关事件翻译成岛上的短句（尽量 6 个字以内，避免胶囊截断）：</p>
+<table>
+<thead>
+<tr>
+<th>事件</th>
+<th>岛上文本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>run_start</code></td>
+<td>正在处理…</td>
+</tr>
+<tr>
+<td><code>phase=wait</code></td>
+<td>等模型回复…</td>
+</tr>
+<tr>
+<td><code>phase=think</code></td>
+<td>正在想…</td>
+</tr>
+<tr>
+<td><code>phase=text</code></td>
+<td>正在写回复…</td>
+</tr>
+<tr>
+<td><code>phase=tool</code> / <code>tool_use</code></td>
+<td>用 执行命令… / 读文件… / 改文件… / 搜代码… / 查资料…</td>
+</tr>
+<tr>
+<td><code>perm_request</code></td>
+<td>等你确认：&lt;工具&gt;</td>
+</tr>
+<tr>
+<td><code>perm_resolved</code></td>
+<td>继续…</td>
+</tr>
+<tr>
+<td><code>compacting</code></td>
+<td>整理上下文…</td>
+</tr>
+<tr>
+<td><code>sub_progress</code></td>
+<td>子任务：&lt;描述&gt;…</td>
+</tr>
+<tr>
+<td><code>run_idle</code> 且 <code>bg&gt;0</code></td>
+<td>后台任务还在跑…</td>
+</tr>
+<tr>
+<td><code>error</code></td>
+<td>出错了：&lt;前 50 字&gt;</td>
+</tr>
+<tr>
+<td><code>run_end</code></td>
+<td>进入收工判定</td>
+</tr>
+</tbody>
+</table>
+<p>工具名映射：<code>Bash→执行命令</code>、<code>Read→读文件</code>、<code>Write/Edit→写/改文件</code>、<code>Grep→搜代码</code>、<code>WebSearch→查资料</code>、<code>Task/Agent→子任务</code>、<code>TodoWrite→整理清单</code> 等。</p>
+<blockquote>
+<p>标题会跟着动作走：读文件 / 执行命令 / 思考中 / 等模型 / 写回复 / 等你确认 / 整理清单 / 后台任务 / 出错了。文本保留更长的描述；<code>TodoWrite</code> 显示「清单 x/y」。完成时标题用「任务完成」。</p>
+</blockquote>
+<hr>
+<h2 id="6">6. 收工判定：四道关</h2>
+<p>这是整个项目踩坑最多的地方，单独说明。</p>
+<ol>
+<li><strong>看 <code>runs</code>，不看 <code>run</code></strong>
+   <code>/api/state</code> 里 <code>run</code> 是“最近开始的一轮”，换轮的空隙可能短暂为空；<code>runs</code> 才是“所有正在跑的轮次”。只要 <code>runs</code> 非空，就不算完。</li>
+<li><strong><code>run_end</code> 后 2.5 秒复查</strong>
+   收到 <code>run_end</code> 不直接发完成，先 <code>setTimeout 2500ms</code>，再 GET <code>/api/state</code>；<code>runs</code> 为空才继续。</li>
+<li><strong>不按 <code>runId</code> 直接排除</strong>
+   换轮时 <code>active.id</code> 可能还是上一轮的，按 id 排除会漏掉真正的结束；统一用第 2 步的状态复查。</li>
+<li><strong>完成前 3 秒宽限</strong>
+   复查通过后再等 3 秒；期间来了新 <code>run_start</code> 就取消完成，继续「正在干活」。这避免了连续两轮之间闪一下「任务完成」。</li>
+</ol>
+<p>完成之后还有 8 秒的展示期，然后 IDLE 收起；新的一轮开始会取消 IDLE 定时器。</p>
+<hr>
+<h2 id="7">7. 关键技术</h2>
+<h3 id="71-android-16-live-updates-coloros-16">7.1 Android 16 Live Updates 与 ColorOS 16</h3>
+<p>ColorOS 16 的流体云已经接入 Google 的 Android 16 Live Updates 规范。满足资格的通知会被系统提升为胶囊，无需 OPPO 的私有白名单；OPPO 自家的 UPK 卡片是另一条路，需要业务资格。</p>
+<p>资格要求（实测）：</p>
+<ul>
+<li>使用标准样式（本项目用 <code>Notification.ProgressStyle</code>）；</li>
+<li>声明 <code>android.permission.POST_PROMOTED_NOTIFICATIONS</code>；</li>
+<li><code>setOngoing(true)</code>，有 <code>contentTitle</code>；</li>
+<li>不使用 <code>customContentView</code>，不是 group summary，未 colorized；</li>
+<li>通知渠道重要性不是 <code>IMPORTANCE_MIN</code>（本项目用 <code>IMPORTANCE_LOW</code>）；</li>
+<li>请求 promoted（见 7.2）。</li>
+</ul>
+<h3 id="72-promoted">7.2 推广（promoted）的开启方式</h3>
+<p>平台公开的 <code>Notification.Builder</code> 没有 <code>setRequestPromotedOngoing</code> 方法，但系统里有：</p>
+<ul>
+<li>额外字段键：<code>android.requestPromotedOngoing</code>（布尔）；</li>
+<li>隐藏方法：<code>Notification.Builder#setRequestPromotedOngoing(boolean)</code>。</li>
+</ul>
+<p>实现同时做两件事：</p>
+<pre><code class="language-java">Bundle extras = new Bundle();
+extras.putBoolean(&quot;android.requestPromotedOngoing&quot;, true);
+builder.addExtras(extras);
+try {
+    Notification.Builder.class
+        .getMethod(&quot;setRequestPromotedOngoing&quot;, boolean.class)
+        .invoke(builder, true);
+} catch (Throwable ignored) { /* 失败也不影响普通通知 */ }
+</code></pre>
+<p>验证方式：</p>
+<pre><code class="language-bash">dumpsys notification --noredact | grep -A1 &quot;pkg=com.dafeiyu.workisland&quot;
+# flags=ONGOING_EVENT|ONLY_ALERT_ONCE|NO_CLEAR|FOREGROUND_SERVICE|PROMOTED_ONGOING
+</code></pre>
+<h3 id="73">7.3 通知设计</h3>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>进行中 / 完成</th>
+<th>待机</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>通知 ID</td>
+<td>1001</td>
+<td>1002</td>
+</tr>
+<tr>
+<td>样式</td>
+<td><code>ProgressStyle</code>（indeterminate / 100%）</td>
+<td>普通通知</td>
+</tr>
+<tr>
+<td>promoted</td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td>计时</td>
+<td><code>setUsesChronometer(true)</code></td>
+<td>无</td>
+</tr>
+<tr>
+<td>小图标</td>
+<td>程序化 bot（四态 + 头顶标识；关掉开关则退回鱼形/模型简笔图）</td>
+<td>同</td>
+</tr>
+<tr>
+<td>颜色</td>
+<td><code>#D97757</code></td>
+<td>无</td>
+</tr>
+<tr>
+<td>标题</td>
+<td>正在干活 / 任务完成</td>
+<td>工作岛</td>
+</tr>
+<tr>
+<td>文本</td>
+<td>当前动作</td>
+<td>在后台等下一轮</td>
+</tr>
+</tbody>
+</table>
+<p><strong>为什么待机要换 ID：</strong> 同一个 ID 的 FGS 通知在更新时可能保留 <code>PROMOTED_ONGOING</code> 标志，导致岛上不收起；换到 1002、取消 1001，胶囊就干净地消失。</p>
+<p><strong>为什么用 <code>ProgressStyle</code> 而不是普通进度条：</strong> 普通 <code>setProgress</code> 不满足 Live Update 的样式资格；<code>ProgressStyle</code> 才能进入流体云。</p>
+<h3 id="74-coloros">7.4 ColorOS 的后台冻结</h3>
+<p>实测发现：即使应用有前台服务、通知是 promoted，ColorOS 仍会在后台把进程冻住：</p>
+<pre><code>/proc/&lt;pid&gt;/task/&lt;tid&gt;/wchan = do_freezer_trap
+</code></pre>
+<p>后果：应用里的 <code>Handler.postDelayed</code>、<code>Thread.sleep</code>、SSE 读取都停住，8 秒收起永远不会发生。</p>
+<p><strong>结论：定时器和事件流不能放在工作岛应用里。</strong> 它们被搬到 driver，driver 跑在 cccodroid 网关的进程树里；网关是用户正在使用的宿主，不会被冻。工作岛退化成一个“只负责画”的渲染器，每次 <code>am</code> intent 把它短暂唤醒，画完继续冻着也没关系。</p>
+<h3 id="75">7.5 进程树与生命周期</h3>
+<p>driver 的两种部署方式：</p>
+<ol>
+<li><strong>网关模块 spawn（生产）</strong>：<code>gw/work-island.mjs</code> 在网关启动时 <code>spawn</code>，<code>detached + unref</code>，父进程是网关；网关每 30 秒检查一次 PID 文件，挂了就重启。</li>
+<li><strong>网关终端里跑（调试/兜底）</strong>：<code>POST /api/term/new</code> 建终端，输入
+   <code>while true; do node driver.mjs; sleep 2; done</code>；
+   进程链是 <code>node server.mjs → ptyhost → bash → node driver.mjs</code>，同样不属于单轮 Claude。</li>
+</ol>
+<p>两种方式通过 <code>~/.work-island.pid</code> 去重：PID 对应进程的 cmdline 含 <code>driver.mjs</code> 就复用。</p>
+<h3 id="76-am">7.6 <code>am</code> 的限制</h3>
+<p>从应用 uid 直接 <code>am broadcast</code> 会失败：</p>
+<pre><code>SecurityException: broadcast asks to run as user -2 but is calling from uid u0aXXXX;
+requires android.permission.INTERACT_ACROSS_USERS_FULL
+</code></pre>
+<p>解决：</p>
+<ul>
+<li>显式加 <code>--user 0</code>；</li>
+<li>改用 <code>am start-foreground-service --user 0 -n ...</code>，既绕开跨用户限制，又能把被冻结的工作岛唤醒；</li>
+<li>失败重试两次（间隔 0.8 秒），覆盖“刚装完 APK、服务还没起来”的瞬时错误。</li>
+</ul>
+<h3 id="77-android-sdk">7.7 构建链（设备上无 Android SDK）</h3>
+<p>设备上只有 aapt2 / d8 / apksigner / javac，没有 Android SDK、没有 Gradle、没有 zipalign。构建步骤：</p>
+<ol>
+<li>下载 <code>platform-36_r02.zip</code>，取出 <code>android-36/android.jar</code>（编译用，27 MB）。</li>
+<li><code>aapt2 compile --dir res -o res.zip</code></li>
+<li><code>aapt2 link -I android.jar --manifest AndroidManifest.xml --java gen -o base.apk res.zip</code></li>
+<li><code>javac -source 11 -target 11 -classpath android.jar -d classes ...</code></li>
+<li><code>d8 --lib android.jar --min-api 36 --output dex classes.jar</code></li>
+<li><code>zip -j base.apk dex/classes.dex</code></li>
+<li><code>apksigner sign --ks island.keystore ...</code></li>
+</ol>
+<p><code>resources.arsc</code> 由 aapt2 产出时已经是未压缩且 4 字节对齐（实测 <code>data offset % 4 == 0</code>），因此没有 zipalign 也能安装。签名用自签名证书；重新签名会让已安装应用需要卸载重装。</p>
+<h3 id="78">7.8 保活</h3>
+<p>工作岛侧：</p>
+<ul>
+<li>前台服务（<code>specialUse</code>）+ <code>android:stopWithTask="false"</code>：从最近任务划掉不停止服务；</li>
+<li><code>BOOT_COMPLETED</code> 接收器：开机后恢复待机通知；</li>
+<li><code>REQUEST_IGNORE_BATTERY_OPTIMIZATIONS</code>：界面上的「后台保活设置」按钮；</li>
+<li>已加入 <code>deviceidle</code> 白名单，standby bucket 设为 active。</li>
+</ul>
+<p>cccodroid 侧：</p>
+<ul>
+<li>网关本身是前台服务；</li>
+<li>已加入 <code>deviceidle</code> 白名单；</li>
+<li>ColorOS 自己的「自启动」「最近任务锁定」需要用户手动开启（adb 管不到）。</li>
+</ul>
+<p><strong>边界：</strong> 强行停止（force-stop）会杀掉一切，任何应用都无法自救；重新打开 cccodroid 后网关模块会重新拉起 driver。这是 Android 的规则，不是缺陷。</p>
+<h3 id="79-bot">7.9 程序化 bot：四态、标识与体征</h3>
+<p>1.3 之前，岛上图标是「模型形状 + 两只眼睛」的简笔版。1.4 按 <code>jazzenchen/agent-hud-open</code>
+（Apache-2.0）的 BotState / BotSigns / BotSpec / BotRenderer 逐项移植成 Java，形成一套完整的
+「灵魂」：</p>
+<p><strong>四种阶段（Wakes / Works / Asks / Done）</strong></p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>look</th>
+<th>岛上表现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wakes</td>
+<td><code>idle</code></td>
+<td>只显示该 agent 的 logo（鲸鱼、星芒、立方体……）</td>
+</tr>
+<tr>
+<td>Works</td>
+<td><code>plain</code> / 思考 / 压缩 / 四种 tool</td>
+<td>logo 0.5 秒变成 bot；呼吸、眨眼、干活时鳍扑腾</td>
+</tr>
+<tr>
+<td>Asks</td>
+<td><code>permission</code> / <code>question</code> / <code>plan</code></td>
+<td>bot 蹦一下、睁大眼睛；头顶 <code>!</code> / <code>?</code> / <code>≡</code></td>
+</tr>
+<tr>
+<td>Done</td>
+<td><code>done</code></td>
+<td>弹一下、笑眼（^^），2.4 秒后安静</td>
+</tr>
+</tbody>
+</table>
+<p><strong>14 种 look 与 7 个标识</strong></p>
+<pre><code>LOOKS  permission question plan compacting thinking
+       tool-edit tool-command tool-read tool-long-command
+       plain no-news idle asleep done
+SIGNS  !  ?  ≡  ×  ⧗  …  z
+</code></pre>
+<p>标识按优先级取第一个：<code>permission !</code> &gt; <code>question ?</code> &gt; <code>plan ≡</code> &gt; <code>failed ×</code> &gt; <code>badge ⧗</code> &gt;
+<code>thinking …</code> &gt; <code>asleep z</code>。字形是 5×7 点阵，绘制时带一圈 1 px 的暗色描边和 35% 的
+淡格，<code>…</code> 的亮点会随节拍在三个格子里跳。</p>
+<p><strong>BotSpec：每个 agent 的体征</strong></p>
+<p>20 个内置 mark + Agent HUD + 小鱼，各自的字段：</p>
+<ul>
+<li><strong>轮廓</strong>：圆 / 圆角矩形 / 多边形 / 猫耳 / bob / <code>outline</code>（从素材 alpha 径向采 360 点、
+  两次滑窗平滑）。所以形状跟着素材走，不是手画的近似。</li>
+<li><strong>配色</strong>：纯色、线性渐变，或从素材采样出的 60×60 配色场（3 次盒式模糊）。</li>
+<li><strong>眼睛</strong>：高度、宽度、圆角、间距、是否平排（<code>across</code>），可单独指定 <code>eyeColor</code>；
+  Copilot 保留素材本身的眼窝，用 <code>ownEyes</code> 在上面画会动的眼睛。</li>
+<li><strong>装饰</strong>：Claude 的手脚（像素块四肢）、DeepSeek 的浅色肚子、Grok 的土星环、
+  Cursor 的缺口、OpenCode 的像素块、Pi 的腿、Hermes 的云、OpenClaw 的触须、Qoder 的绿光。</li>
+<li><strong>状态表情</strong>：睁眼 / 眨眼 / 眯眼 / 睁大 / 笑眼 / 叉眼；<code>crossesEyes</code> 的 mark 在出错时叉眼。</li>
+</ul>
+<p><strong>渲染与动效</strong></p>
+<ul>
+<li>归一化坐标：一个 mark 占 1×1，四周留 0.3；通知小图标 160 px，大图标 256 px。</li>
+<li>应用内 <code>BotView</code> 逐帧跑完整动效：0.5 s logo→bot 变形、3 s 呼吸、2.2–4.5 s 随机眨眼、
+  请求时 0.45 s 起跳、完成时 0.6 s 弹一下、思考时眼睛向上瞟并转动。</li>
+<li>通知图标是静态帧，不能逐帧动；但每次状态更新都会重画，四态和标识是准的。</li>
+</ul>
+<p><strong>开关与回退</strong></p>
+<p><code>Prefs.soul</code> 默认开。设置页的「程序化 bot（四态 + 标识 + 体征）」关掉后，通知图标退回
+1.2 的简笔画法；应用内仍可预览。</p>
+<p><strong>岛上信息：别让胶囊空着</strong></p>
+<ul>
+<li><strong>折叠胶囊</strong>用 <code>Notification.Builder.setShortCriticalText()</code>：显示「工作状态 + 清单进度」，
+  例如 <code>思考中 1/4</code>、<code>等你确认</code>、<code>整理清单 2/4</code>。ColorOS 的流体云优先显示这段文字，
+  比只放一个短标题更满。</li>
+<li><strong>展开通知</strong>：</li>
+<li>标题 <code>整理清单 · 1/4</code>；</li>
+<li>副标题（<code>setSubText</code>）<code>正在改 BotPainter · 清单 1/4</code>，原来的 <code>cccodroid</code> 换掉；</li>
+<li><code>setUsesChronometer(true)</code> 提供实时计时；</li>
+<li><code>ProgressStyle.setProgressSegments()</code>：清单有几条就分几段，已完成的段用状态色，
+    没完成的段用 20% 白；进度条上的 tracker 还是那只 bot。</li>
+<li>没有清单时退回原来的状态名，进度条保持 indeterminate，不硬凑步骤。</li>
+</ul>
+<p><strong>动效：通知图标也会动</strong></p>
+<p>通知的小图标本来是静态位图，ColorOS 又会在后台冻结应用，应用内定时器不可靠。
+所以动画帧由 <strong>driver</strong>（跑在网关进程里）推：</p>
+<ul>
+<li>思考时每 800 ms 发一帧 <code>--ei anim 0/1/2</code>：省略号的亮点从左跳到右，眼睛左右瞟，
+  身体上下浮 1.8%；应用只负责按帧重画。上一帧的 <code>am</code> 返回后才发下一帧，避免排队。</li>
+<li><strong>通知 ID 始终是 1001</strong>：同一个 ID 的更新也会刷新前导图标（thinking / error 两态实测像素不同）；
+  不换 ID，胶囊就不会收回再弹出（主人叫它「抽搐」）。</li>
+<li>第一帧直接是最终 bot，不再发 <code>morph 0/45/80</code> 唤醒帧：第一帧是 logo 时会被系统缓存一整轮，
+  看起来像「模型被切掉」。</li>
+<li>图标按 <code>(模型, look, 失败, 尺寸, morph, anim)</code> 做 24 张 LRU 缓存，同一 ID 更新时不再每帧重新渲染，
+  减少闪白。</li>
+<li>身体比例恒定：图标永远给头顶标识预留位置（即使当前没有 <code>!</code>/<code>?</code>/<code>≡</code>），
+  所以标识出现/消失时 bot 不会忽大忽小，也不会贴边被圆形槽裁掉。</li>
+</ul>
+<p><strong>许可</strong></p>
+<p>移植自 <code>agent-hud-open</code>（Apache-2.0），bot 素材来自 LobeHub（MIT），商标归各自所有者；
+未使用 Anthropic 的 Clawd sprites。许可全文见 <code>LICENSES/agent-hud-open-LICENSE.txt</code>。</p>
+<hr>
+<h2 id="8">8. 接口与契约</h2>
+<h3 id="81-http">8.1 网关 HTTP</h3>
+<table>
+<thead>
+<tr>
+<th>接口</th>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/api/state</code></td>
+<td>GET</td>
+<td><code>run</code>（最近一轮）、<code>runs</code>（所有活跃轮次）、<code>queue</code>、<code>provider</code>、<code>model</code></td>
+</tr>
+<tr>
+<td><code>/api/events</code></td>
+<td>GET (SSE)</td>
+<td><code>hello</code>、<code>run_start</code>、<code>state</code>、<code>phase</code>、<code>tool_use</code>、<code>perm_request</code>、<code>perm_resolved</code>、<code>run_idle</code>、<code>error</code>、<code>run_end</code></td>
+</tr>
+</tbody>
+</table>
+<p>鉴权：请求头 <code>X-CC-Token: &lt;64 位十六进制&gt;</code>，令牌在 <code>~/.gateway-token</code>（0600）。</p>
+<h3 id="82-service-intent">8.2 工作岛 Service Intent</h3>
+<p>组件：<code>com.dafeiyu.workisland/.IslandService</code></p>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Extra</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>...START</code> / <code>...UPDATE</code></td>
+<td><code>title</code>, <code>text</code>, <code>since</code>(long, ms)</td>
+<td>画进行中通知（ID 1001）</td>
+</tr>
+<tr>
+<td><code>...DONE</code></td>
+<td>无</td>
+<td>画「任务完成」，等 driver 发 IDLE</td>
+</tr>
+<tr>
+<td><code>...IDLE</code></td>
+<td>无</td>
+<td>换 ID 1002 安静通知，取消 1001</td>
+</tr>
+<tr>
+<td><code>...CANCEL</code></td>
+<td>无</td>
+<td>取消通知并停止服务</td>
+</tr>
+</tbody>
+</table>
+<p>启动方式：</p>
+<pre><code class="language-bash">am start-foreground-service --user 0 \
+  -n com.dafeiyu.workisland/.IslandService \
+  -a com.dafeiyu.workisland.START \
+  --es title &quot;正在干活&quot; --es text &quot;用 执行命令…&quot; \
+  --el since 1792932556566
+</code></pre>
+<hr>
+<h2 id="9">9. 安全与隐私</h2>
+<ul>
+<li>网关只监听 <code>127.0.0.1</code>，并且所有 <code>/api/*</code> 需要令牌；令牌文件 0600，只有 cccodroid uid 能读。</li>
+<li>driver 以 cccodroid uid 运行，读取令牌，但 <strong>不把令牌写进命令行、日志或工作岛</strong>；工作岛只接收 intent。</li>
+<li>工作岛的 <code>IslandService</code> 是 exported 的，同机其他应用可以伪造 START/DONE（只影响显示，不影响数据）。生产化时应加 signature 级自定义权限，或改为只允许同 uid/同签名调用。</li>
+<li>不采集、不上传任何屏幕、位置、剪贴板或会话内容；岛上只显示当前动作的短句。</li>
+<li>对 cccodroid 的改动可回退：<code>server.mjs.original</code> 是原文件，<code>server.mjs</code> 只多了一行 import 和一行启动调用。</li>
+</ul>
+<hr>
+<h2 id="10">10. 已知限制</h2>
+<ol>
+<li><strong>强行停止</strong>：ccc odroid 被 force-stop 后，网关和 driver 都没了，岛上会停在最后一个状态；重开 cccodroid 恢复。</li>
+<li><strong>ColorOS 冻结</strong>：工作岛在后台会被冻，不能自己计时；本方案把计时放在 driver，但如果 driver 也被硬杀，收起可能延迟。</li>
+<li><strong>应用更新</strong>：ccc odroid 更新可能覆盖 <code>files/app/gw/work-island.mjs</code> 与 <code>server.mjs</code>，需要重新接入（原文件有备份）。</li>
+<li><strong>胶囊外观</strong>：由系统绘制，只能控制图标、标题、文本、进度；不能自定义成 OPPO UPK 那种完全自定义卡片。</li>
+<li><strong>exported 服务</strong>：见第 9 节，属于演示级安全。</li>
+<li><strong>单实例</strong>：driver 只跟踪一个“当前状态”；并行多轮时，文案可能跟随最后触发的事件，但收工判定仍以 <code>runs</code> 为准。</li>
+</ol>
+<hr>
+<h2 id="11">11. 后续演进</h2>
+<ul>
+<li>给工作岛 service 加签名级权限，杜绝伪造 intent。</li>
+<li>在 driver 里加心跳（每 15–30 秒），配合 AlarmManager 看门狗，缩短硬杀后的残留时间。</li>
+<li>把 driver 的路径/端口做成配置，支持开发端 8790 与 cccodroid 8791。</li>
+<li>增加可选的胶囊文案模板（例如显示会话标题、token 用量）。</li>
+<li>如果 OPPO 开放 UPK 资格，可做完全自定义的胶囊卡片。</li>
+<li>把网关模块做成可安装组件（跟随 cccodroid 更新自动重放），减少手工接入。</li>
+</ul></article><article class="doc page-break"><div class="doc-title">二、开发与部署</div><h1 id="_1">工作岛 · 开发与部署</h1>
+<blockquote>
+<p>适用：Android 16 / ColorOS 16（OnePlus PJA110 实测）
+宿主：cccodroid 0.4.2</p>
+</blockquote>
+<hr>
+<h2 id="1">1. 目录说明</h2>
+<h3 id="_2">交付包</h3>
+<pre><code>工作岛-方案与设计/
+├── README.md
+├── docs/
+│   ├── 01-方案与设计.md
+│   ├── 02-开发与部署.md
+│   ├── 03-测试报告.md
+│   └── 04-提交说明.md
+├── source/
+│   ├── app/                 Android 应用源码（Java + res + build.sh）
+│   ├── driver/driver.mjs    状态驱动
+│   ├── driver/watch-island.mjs  早期独立 watcher（历史对照，不参与正式流程）
+│   └── gateway/
+│       ├── work-island.mjs        网关模块（启动 driver + 30s 看门狗）
+│       ├── server.mjs             已接入的网关入口
+│       └── server.mjs.original    接入前原文件
+├── screenshots/
+└── apk/WorkIsland.apk
+</code></pre>
+<h3 id="_3">设备上的落点</h3>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>应用源码工程</td>
+<td><code>/data/user/0/cc.codroid/files/home/workspace/task-island/app/</code></td>
+</tr>
+<tr>
+<td>driver</td>
+<td><code>/data/user/0/cc.codroid/files/home/workspace/task-island/driver.mjs</code></td>
+</tr>
+<tr>
+<td>网关模块</td>
+<td><code>/data/user/0/cc.codroid/files/app/gw/work-island.mjs</code></td>
+</tr>
+<tr>
+<td>网关入口</td>
+<td><code>/data/user/0/cc.codroid/files/app/server.mjs</code></td>
+</tr>
+<tr>
+<td>网关原文件备份</td>
+<td><code>/data/user/0/cc.codroid/files/app/server.mjs.bak-workisland</code></td>
+</tr>
+<tr>
+<td>网关令牌</td>
+<td><code>/data/user/0/cc.codroid/files/home/.gateway-token</code>（0600）</td>
+</tr>
+<tr>
+<td>driver PID</td>
+<td><code>/data/user/0/cc.codroid/files/home/.work-island.pid</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><code>/data/user/0/cc.codroid/...</code> 是 cccodroid 的应用私有目录，只有 cccodroid uid 可读写；不要把它放到 <code>/sdcard</code> 上执行。</p>
+</blockquote>
+<hr>
+<h2 id="2">2. 环境与工具</h2>
+<p>设备上需要：</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>实测版本</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>aapt2</td>
+<td>2.20-android-16.0.0_r4</td>
+<td>资源编译与链接</td>
+</tr>
+<tr>
+<td>javac</td>
+<td>21</td>
+<td>编译 Java</td>
+</tr>
+<tr>
+<td>d8</td>
+<td>9.2.4</td>
+<td>生成 classes.dex</td>
+</tr>
+<tr>
+<td>apksigner</td>
+<td>0.9</td>
+<td>签名</td>
+</tr>
+<tr>
+<td>keytool</td>
+<td>21</td>
+<td>生成签名密钥</td>
+</tr>
+<tr>
+<td>zip / unzip</td>
+<td>—</td>
+<td>打包</td>
+</tr>
+<tr>
+<td>node</td>
+<td>26</td>
+<td>运行 driver 与网关</td>
+</tr>
+<tr>
+<td>magick</td>
+<td>—</td>
+<td>生成启动图标（仅开发用）</td>
+</tr>
+</tbody>
+</table>
+<p>没有 Android SDK、Gradle、zipalign；构建走 <code>aapt2 + javac + d8 + zip + apksigner</code>。</p>
+<hr>
+<h2 id="3-app">3. App 构建</h2>
+<h3 id="31-androidjar">3.1 取 android.jar</h3>
+<pre><code class="language-bash">mkdir -p /data/user/0/cc.codroid/files/home/workspace/task-island/sdk36
+curl -L -o platform-36.zip \
+  https://dl.google.com/android/repository/platform-36_r02.zip
+unzip -o platform-36.zip 'android-36/android.jar' \
+  -d /data/user/0/cc.codroid/files/home/workspace/task-island/sdk36
+# 结果：.../sdk36/android-36/android.jar（约 27 MB）
+</code></pre>
+<p><code>build.sh</code> 默认使用 <code>../sdk36/android-36/android.jar</code>；如果你的目录不同，改脚本第一行的 <code>SDK=</code>。</p>
+<h3 id="32">3.2 构建</h3>
+<pre><code class="language-bash">cd /data/user/0/cc.codroid/files/home/workspace/task-island/app
+bash build.sh
+# 产物：build/base.apk（未签名）
+</code></pre>
+<p><code>build.sh</code> 做的事：</p>
+<pre><code class="language-bash">aapt2 compile --dir res -o build/res.zip
+aapt2 link -o build/base.apk -I &quot;$SDK&quot; \
+  --manifest AndroidManifest.xml --java gen --auto-add-overlay build/res.zip
+javac -source 11 -target 11 -classpath &quot;$SDK&quot; -d build/classes @build/sources.txt
+jar cf build/classes.jar -C build/classes .
+d8 --release --lib &quot;$SDK&quot; --min-api 36 --output build/dex build/classes.jar
+cd build &amp;&amp; zip -q -j base.apk dex/classes.dex
+</code></pre>
+<h3 id="33">3.3 签名</h3>
+<pre><code class="language-bash">cd /data/user/0/cc.codroid/files/home/workspace/task-island/app
+
+# 如果还没有密钥：
+keytool -genkeypair -keystore island.keystore -alias island \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -storepass island123 -keypass island123 \
+  -dname &quot;CN=WorkIsland, O=WorkIsland, C=CN&quot;
+
+apksigner sign --ks island.keystore \
+  --ks-pass pass:island123 --key-pass pass:island123 \
+  --out WorkIsland.apk build/base.apk
+</code></pre>
+<p>说明：</p>
+<ul>
+<li>交付包<strong>不包含私钥</strong>（<code>island.keystore</code> 留在本机工作区）。重新生成密钥会改变签名，已安装的旧版必须先卸载再装。</li>
+<li><code>resources.arsc</code> 由 aapt2 输出时已是未压缩且 4 字节对齐，实测可直接安装；如果换工具链后安装报 <code>resources.arsc ... not aligned</code>，再补 zipalign。</li>
+<li>APK 版本：<code>versionCode=5</code>、<code>versionName=1.4</code>。</li>
+</ul>
+<h3 id="34">3.4 安装</h3>
+<p>共享目录 <code>/sdcard</code> 里的 APK 不能直接 <code>pm install</code>（SELinux 文件上下文问题），先经 shell 拷到 <code>/data/local/tmp</code>：</p>
+<pre><code class="language-bash">cp WorkIsland.apk /sdcard/cccodroid/WorkIsland.apk
+priv 'cp /sdcard/cccodroid/WorkIsland.apk /data/local/tmp/WorkIsland.apk &amp;&amp; \
+      chmod 644 /data/local/tmp/WorkIsland.apk &amp;&amp; \
+      pm install -r /data/local/tmp/WorkIsland.apk'
+priv 'pm grant com.dafeiyu.workisland android.permission.POST_NOTIFICATIONS'
+</code></pre>
+<p>首次打开「工作岛」，确认：</p>
+<ul>
+<li>通知：开</li>
+<li>实时更新：允许</li>
+<li>电池：不优化（点「后台保活设置」按提示开）</li>
+</ul>
+<hr>
+<h2 id="4">4. 网关接入</h2>
+<h3 id="41">4.1 放入模块</h3>
+<pre><code class="language-bash">cp source/gateway/work-island.mjs \
+  /data/user/0/cc.codroid/files/app/gw/work-island.mjs
+</code></pre>
+<h3 id="42-servermjs">4.2 修改 server.mjs（两行）</h3>
+<p>先备份：</p>
+<pre><code class="language-bash">cp /data/user/0/cc.codroid/files/app/server.mjs \
+   /data/user/0/cc.codroid/files/app/server.mjs.bak-workisland
+</code></pre>
+<p>在 import 区加：</p>
+<pre><code class="language-js">import { startWorkIsland } from &quot;./gw/work-island.mjs&quot;;
+</code></pre>
+<p>在 <code>server.listen(...)</code> 的回调末尾加：</p>
+<pre><code class="language-js">try { startWorkIsland(); } catch (e) { log(&quot;工作岛启动失败: &quot; + e.message); }
+</code></pre>
+<p>完整 diff 只有两处；<code>source/gateway/server.mjs</code> 是改好的版本，可直接对照。</p>
+<h3 id="43">4.3 生效</h3>
+<p>网关在 cccodroid 启动时加载 <code>server.mjs</code>。要让改动生效：</p>
+<ul>
+<li>重启 cccodroid（或让它重启网关服务）。</li>
+<li>重启会结束当前会话的生成，但会话记录还在，重新打开即可。</li>
+</ul>
+<p>生效后网关日志会出现：</p>
+<pre><code>[work-island] driver 已启动 pid=...
+</code></pre>
+<h3 id="44">4.4 不重启网关的临时接法（调试用）</h3>
+<p>通过网关的终端 API 直接跑 driver：</p>
+<pre><code class="language-bash">TOKEN=$(cat /data/user/0/cc.codroid/files/home/.gateway-token)
+
+# 1) 建一个终端
+R=$(curl -s -X POST -H &quot;X-CC-Token: $TOKEN&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{&quot;rows&quot;:24,&quot;cols&quot;:80,&quot;title&quot;:&quot;工作岛&quot;}' \
+  http://127.0.0.1:8791/api/term/new)
+ID=$(echo &quot;$R&quot; | sed -n 's/.*&quot;id&quot;:&quot;\([a-z0-9]*\)&quot;.*/\1/p')
+
+# 2) 在终端里跑一个守护循环
+curl -s -X POST -H &quot;X-CC-Token: $TOKEN&quot; \
+  --data-binary $'cd /data/user/0/cc.codroid/files/home/workspace/task-island &amp;&amp; \
+while true; do node driver.mjs; echo &quot;driver exited, restart&quot;; sleep 2; done\n' \
+  &quot;http://127.0.0.1:8791/api/term/$ID/in&quot;
+
+# 3) 看输出（SSE）
+curl -s -N -H &quot;X-CC-Token: $TOKEN&quot; \
+  &quot;http://127.0.0.1:8791/api/term/$ID/stream&quot;
+</code></pre>
+<p>终端进程链是 <code>node server.mjs → ptyhost → bash → node driver.mjs</code>，不属于单轮 Claude，因此不会被单轮收尾带走。</p>
+<h3 id="45">4.5 去重</h3>
+<ul>
+<li>driver 启动时把 PID 写进 <code>~/.work-island.pid</code>。</li>
+<li>网关模块启动时读这个文件，检查对应进程的 cmdline 是否包含 <code>driver.mjs</code>；是就复用，不重复拉起。</li>
+<li>模块每 30 秒检查一次，driver 挂了会自动重启。</li>
+</ul>
+<h3 id="46-cccodroid-047">4.6 cccodroid 0.4.7+：上游网关内集成</h3>
+<p>0.4.7 起上游把工作岛改成了网关进程内订阅（<a href="https://github.com/greyoak111/cccodroid/pull/21">PR #21</a>），不再需要本仓库的独立 driver、PID 文件、令牌和看门狗：</p>
+<ul>
+<li>网关模块：<code>gateway/gw/work-island.mjs</code> + <code>gateway/gw/work-island-core.mjs</code>；</li>
+<li><code>gateway/gw/bus.mjs</code> 提供 <code>onPublish(fn)</code>；收工判定直接读 <code>runList()</code>；</li>
+<li>设置 → <strong>工作岛（ColorOS 灵动岛）</strong> → 打开；默认关闭；</li>
+<li>打开后才异步检测应用、开始送状态；关掉发一次 IDLE；</li>
+<li>更新限频 1.5 秒；<code>error</code> 只显示「出错了 / 这一轮出错了」；文案跟随 <code>LAST_LANG</code>（中/英）；</li>
+<li>清单 <code>&lt;queries&gt;</code> 已加 <code>com.dafeiyu.workisland</code>；如果设备上仍检测不到，可用 <code>CCAPP_WORK_ISLAND=1</code> 强制开启。</li>
+<li>跟进 <a href="https://github.com/greyoak111/cccodroid/pull/22">PR #22</a>（OPEN）：标题跟随动作、<code>tasks</code> 事件的清单进度、<code>state</code> extra；<code>source/upstream-pr/</code> 的 core / driver / 单测已同步到该分支（单测 19 条）。</li>
+</ul>
+<p>对本仓库的部署来说，0.4.7+ <strong>不需要</strong>第 4.1–4.5 节的独立 driver；保留它们是给 0.4.2–0.4.6 的。</p>
+<hr>
+<h2 id="5-driver">5. driver 行为说明</h2>
+<p><code>driver.mjs</code> 的关键逻辑：</p>
+<pre><code>读 ~/.gateway-token
+  → SSE 订阅 /api/events
+  → run_start / hello.run / state.run → 开始
+  → phase / tool_use / perm_request → 更新文案
+  → run_end → 等 2.5s → GET /api/state → runs 为空？
+       否 → 忽略（别的轮次）
+       是 → 等 3s → 有新 run_start？
+              是 → 取消完成
+              否 → 发 DONE → 8s → 发 IDLE
+  → 每 5s 轮询 /api/state 兜底
+  → SIGTERM / SIGINT / SIGHUP → 发 IDLE 再退出
+</code></pre>
+<p>发送方式：</p>
+<pre><code class="language-bash">am start-foreground-service --user 0 \
+  -n com.dafeiyu.workisland/.IslandService \
+  -a com.dafeiyu.workisland.UPDATE \
+  --es title &quot;正在干活&quot; --es text &quot;用 执行命令…&quot; \
+  --el since &lt;startedAt&gt;
+</code></pre>
+<p>失败会自动重试两次（间隔 0.8 秒）。</p>
+<hr>
+<h2 id="6">6. 保活</h2>
+<h3 id="61">6.1 工作岛</h3>
+<p>已内置：</p>
+<ul>
+<li>前台服务 + <code>android:stopWithTask="false"</code></li>
+<li><code>BOOT_COMPLETED</code> 接收器</li>
+<li><code>REQUEST_IGNORE_BATTERY_OPTIMIZATIONS</code> + 界面按钮</li>
+<li>待机通知使用独立 ID 1002，不与工作态混用</li>
+</ul>
+<p>系统侧（已用 shell 执行）：</p>
+<pre><code class="language-bash">priv 'cmd deviceidle whitelist +com.dafeiyu.workisland'
+priv 'am set-standby-bucket com.dafeiyu.workisland active'
+priv 'cmd appops set com.dafeiyu.workisland RUN_IN_BACKGROUND allow'
+</code></pre>
+<h3 id="62-cccodroid">6.2 cccodroid</h3>
+<pre><code class="language-bash">priv 'cmd deviceidle whitelist +cc.codroid'
+priv 'am set-standby-bucket cc.codroid active'
+priv 'cmd appops set cc.codroid RUN_IN_BACKGROUND allow'
+</code></pre>
+<p>ColorOS 自己的开关（adb 管不到，需要手动）：</p>
+<ol>
+<li>最近任务里长按 cccodroid 卡片 → 锁定（小锁）。</li>
+<li>设置 → 应用 → cccodroid → 耗电管理 → 允许后台活动。</li>
+<li>设置 → 应用 → 自启动 → 把 cccodroid 和工作岛都打开。</li>
+</ol>
+<h3 id="63">6.3 边界</h3>
+<ul>
+<li>「划到后台 / 按 Home」：driver、网关、前台服务都活着，岛继续更新（已测）。</li>
+<li>「强行停止（force-stop）」：所有进程被杀，无法自救；重新打开 cccodroid 后网关模块会拉起 driver。</li>
+<li>屏幕关闭、Doze：已加入 <code>deviceidle</code> 白名单，实测后台 8 秒以上仍在；长时间 Doze 下仍可能被冻，属于系统行为。</li>
+</ul>
+<hr>
+<h2 id="7">7. 调试</h2>
+<pre><code class="language-bash"># 应用日志
+priv 'logcat -d -s WorkIsland'
+
+# 通知标志（看 PROMOTED_ONGOING / FOREGROUND_SERVICE）
+priv 'dumpsys notification --noredact' | grep -A1 &quot;pkg=com.dafeiyu.workisland&quot;
+
+# 前台服务状态
+priv 'dumpsys activity services com.dafeiyu.workisland' | grep -E &quot;isForeground|foregroundId&quot;
+
+# 网关状态
+TOKEN=$(cat /data/user/0/cc.codroid/files/home/.gateway-token)
+curl -s -H &quot;X-CC-Token: $TOKEN&quot; http://127.0.0.1:8791/api/state
+
+# driver 进程与 PID 文件
+pgrep -af &quot;node driver.mjs&quot;
+cat /data/user/0/cc.codroid/files/home/.work-island.pid
+
+# 终端里的 driver 输出
+curl -s -N -H &quot;X-CC-Token: $TOKEN&quot; http://127.0.0.1:8791/api/term/&lt;id&gt;/stream
+</code></pre>
+<p>常见现象：</p>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>岛不出现</td>
+<td><code>dumpsys notification</code> 是否有 <code>PROMOTED_ONGOING</code>；<code>canPostPromotedNotifications()</code> 是否 true；系统设置是否允许实时更新</td>
+</tr>
+<tr>
+<td>一直「正在干活」</td>
+<td>driver 是否活着；<code>runs</code> 是否真的为空；ColorOS 是否把 cccodroid 冻了</td>
+</tr>
+<tr>
+<td>提前「任务完成」</td>
+<td>确认 driver 是最新版（2.5s 复查 + 3s 宽限）</td>
+</tr>
+<tr>
+<td><code>am</code> 报 <code>Not found; no service started</code></td>
+<td>应用是否刚重装；driver 会重试；打开一次「工作岛」</td>
+</tr>
+<tr>
+<td>后台一会儿就停</td>
+<td>三个保活开关是否都开了；<code>cmd deviceidle whitelist</code> 是否包含两个包</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="8">8. 回滚</h2>
+<pre><code class="language-bash"># 1) 还原网关入口
+cp /data/user/0/cc.codroid/files/app/server.mjs.bak-workisland \
+   /data/user/0/cc.codroid/files/app/server.mjs
+
+# 2) 删掉模块（可选）
+rm /data/user/0/cc.codroid/files/app/gw/work-island.mjs
+
+# 3) 停掉 driver
+kill $(cat /data/user/0/cc.codroid/files/home/.work-island.pid) 2&gt;/dev/null
+
+# 4) 卸载工作岛（可选）
+priv 'pm uninstall com.dafeiyu.workisland'
+</code></pre>
+<p>重启 cccodroid 后恢复原状。注意：ccc odroid 升级也可能覆盖 <code>files/app</code>，届时按本文件重新接入即可。</p>
+<hr>
+<h2 id="9">9. 从零复现（清单）</h2>
+<ol>
+<li>取 <code>android.jar</code>（第 3.1 节）。</li>
+<li><code>bash build.sh</code> + <code>apksigner</code>（第 3.2–3.3 节）。</li>
+<li><code>pm install</code> + 通知授权（第 3.4 节）。</li>
+<li>打开「工作岛」，确认三行状态。</li>
+<li>放入 <code>gw/work-island.mjs</code>，改 <code>server.mjs</code> 两行（第 4.2 节）。</li>
+<li>重启 cccodroid，看网关日志 <code>[work-island] driver 已启动</code>。</li>
+<li>在 cccodroid 里发一条消息，观察岛上状态。</li>
+<li>打开三个保活开关（第 6 节）。</li>
+</ol></article><article class="doc page-break"><div class="doc-title">三、测试报告</div><h1 id="_1">工作岛 · 测试报告</h1>
+<blockquote>
+<p>测试日期：2026-10-26
+设备：OnePlus PJA110 · ColorOS 16.0.3 · Android 16（SDK 36）
+应用：com.dafeiyu.workisland 1.4（APK SHA-256 <code>98c60825…bbb2</code>）</p>
+</blockquote>
+<hr>
+<h2 id="1">1. 测试环境</h2>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>宿主</td>
+<td>cccodroid 0.4.2，网关 127.0.0.1:8791</td>
+</tr>
+<tr>
+<td>模型</td>
+<td>deepseek-flash</td>
+</tr>
+<tr>
+<td>通知渠道</td>
+<td><code>work</code>，IMPORTANCE_LOW</td>
+</tr>
+<tr>
+<td>实时更新</td>
+<td><code>canPostPromotedNotifications() = true</code></td>
+</tr>
+<tr>
+<td>电池</td>
+<td>不优化（deviceidle 白名单）</td>
+</tr>
+<tr>
+<td>屏幕</td>
+<td>打开，非锁屏</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="2">2. 用例与结果</h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>用例</th>
+<th>预期</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T1</td>
+<td>工作态上岛</td>
+<td>岛显示「正在干活」+ 当前动作</td>
+<td><strong>通过</strong></td>
+</tr>
+<tr>
+<td>T2</td>
+<td>完成态</td>
+<td>岛显示「任务完成」+ 用时</td>
+<td><strong>通过</strong></td>
+</tr>
+<tr>
+<td>T3</td>
+<td>完成 8 秒后收起</td>
+<td>岛上胶囊消失，通知栏保留安静通知</td>
+<td><strong>通过</strong></td>
+</tr>
+<tr>
+<td>T4</td>
+<td>并行轮次结束</td>
+<td>另一轮结束时不误报完成</td>
+<td><strong>通过</strong></td>
+</tr>
+<tr>
+<td>T5</td>
+<td>driver 被杀</td>
+<td>守护循环 2 秒内拉起，岛不断</td>
+<td><strong>通过</strong></td>
+</tr>
+<tr>
+<td>T6</td>
+<td>双应用后台</td>
+<td>driver、网关、前台服务存活，岛继续更新</td>
+<td><strong>通过</strong></td>
+</tr>
+<tr>
+<td>T7</td>
+<td>连续两轮</td>
+<td>第一轮完成 → 收起 → 第二轮开始，节奏正确</td>
+<td><strong>通过</strong></td>
+</tr>
+<tr>
+<td>T8</td>
+<td>推广资格</td>
+<td><code>PROMOTED_ONGOING</code> 出现在通知 flags</td>
+<td><strong>通过</strong></td>
+</tr>
+<tr>
+<td>T9</td>
+<td>构建与安装</td>
+<td>APK 可构建、签名、安装、启动</td>
+<td><strong>通过</strong></td>
+</tr>
+<tr>
+<td>T10</td>
+<td>通知权限关闭</td>
+<td>应用内显示「通知：关」，可跳系统设置</td>
+<td>未做破坏性测试</td>
+</tr>
+<tr>
+<td>T11</td>
+<td>状态标题跟随动作 / 清单进度</td>
+<td>标题显示读文件 / 执行命令 / 思考中 / 等你确认；TodoWrite 显示清单 x/y</td>
+<td><strong>单测通过</strong>；真机待确认</td>
+</tr>
+<tr>
+<td>T12</td>
+<td>图标按模型切换 / 状态色</td>
+<td>选 DeepSeek 后小图标变鲸鱼；执行命令蓝色、完成绿色</td>
+<td><strong>真机目视通过</strong>（蓝色胶囊 +「执行命令」）；选择器 UI 已出现</td>
+</tr>
+<tr>
+<td>T13</td>
+<td>四态预览</td>
+<td>醒来=logo，干活/请求/完成=bot；切换有 0.5 s 变形</td>
+<td><strong>真机目视通过</strong>（<code>09-bot-preview.png</code>）</td>
+</tr>
+<tr>
+<td>T14</td>
+<td>21 个模型 / 14 个 look</td>
+<td>每个模型有自己的轮廓、配色、眼睛；14 个 look 的标识和表情正确</td>
+<td><strong>真机目视通过</strong>（<code>10-bot-states.png</code>，21×1 + 14 格对照）</td>
+</tr>
+<tr>
+<td>T15</td>
+<td>头顶标识</td>
+<td>请求 <code>!</code>、提问 <code>?</code>、清单 <code>≡</code>、出错 <code>×</code>、睡着 <code>z</code>、思考 <code>…</code></td>
+<td><strong>真机目视通过</strong>；岛上「等你确认」显示 <code>!</code>（<code>12-island-ask.png</code>）</td>
+</tr>
+<tr>
+<td>T16</td>
+<td>通知大/小图标</td>
+<td>大图标 256 px、小图标 160 px 都是同一只 bot；待机只显示 logo</td>
+<td><strong>真机目视通过</strong>（<code>11-notification-bot.png</code>）</td>
+</tr>
+<tr>
+<td>T17</td>
+<td>程序化 bot 开关</td>
+<td>关掉后退回 1.2 的简笔图标；应用内仍可预览</td>
+<td>代码路径已实现；未做关/开往返截图</td>
+</tr>
+<tr>
+<td>T18</td>
+<td>22.6 GB 设备上的渲染耗时</td>
+<td>21 个模型 + 14 look 全量渲染 &lt; 1 s</td>
+<td><strong>通过</strong>（<code>10-bot-states.png</code> 一次生成）</td>
+</tr>
+<tr>
+<td>T19</td>
+<td>岛上折叠胶囊信息</td>
+<td>显示「状态 + 清单进度」，不再只有动作</td>
+<td><strong>通过</strong>：<code>dumpsys</code> 中 <code>shortCriticalText=思考中 1/4</code>，截图 <code>13-island-thinking.png</code></td>
+</tr>
+<tr>
+<td>T20</td>
+<td>展开通知信息</td>
+<td>标题带进度、副标题有细节、计时在走、进度条按清单分段</td>
+<td><strong>通过</strong>（<code>11-notification-bot.png</code>）</td>
+</tr>
+<tr>
+<td>T21</td>
+<td>思考时图标动起来</td>
+<td>省略号亮点移动、眼睛左右瞟、身体轻浮</td>
+<td><strong>通过</strong>：同一通知 ID 注入 anim 0/1/2，胶囊图标逐帧不同；800 ms/帧，胶囊不收回（<code>13-island-thinking.png</code>）</td>
+</tr>
+<tr>
+<td>T22</td>
+<td>标识出现/消失不改变身体大小</td>
+<td><code>!</code> <code>?</code> <code>≡</code> 切换时 bot 尺寸恒定，不贴边裁切</td>
+<td><strong>通过</strong>：图标固定为标识预留位置，94% 内容框</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="3">3. 关键验证记录</h2>
+<h3 id="31">3.1 推广标志</h3>
+<pre><code class="language-text">NotificationRecord(... pkg=com.dafeiyu.workisland id=1001 ...):
+  flags=ONGOING_EVENT|ONLY_ALERT_ONCE|NO_CLEAR|FOREGROUND_SERVICE|PROMOTED_ONGOING
+</code></pre>
+<p>应用内：</p>
+<pre><code class="language-text">通知：开    实时更新：允许    电池：不优化
+</code></pre>
+<h3 id="32-coloros">3.2 ColorOS 冻结证据</h3>
+<p>在后台等待时读取线程状态：</p>
+<pre><code class="language-text">/proc/&lt;pid&gt;/task/&lt;tid&gt;/wchan = do_freezer_trap
+State: S (sleeping)
+</code></pre>
+<p>这解释了为什么应用内 <code>Thread.sleep(8000)</code> 不会按时醒来，也是把定时器搬到 driver 的直接原因。</p>
+<h3 id="33-t4">3.3 并行轮次测试（T4）</h3>
+<ol>
+<li>主任务 <code>rmvnszrdb6</code> 正在跑。</li>
+<li>通过 <code>/api/chat</code> 另起一条短任务（新会话）：<code>只回复两个字：好的</code>，返回 run <code>rmvnszrdb7</code>。</li>
+<li>等 12 秒，测试轮结束；<code>/api/state</code> 里只剩 <code>rmvnszrdb6</code>。</li>
+<li>岛上仍为「正在干活 / 正在处理…」，<strong>没有</strong>出现「任务完成」。</li>
+</ol>
+<p>测试结束后临时会话已删除（进回收站）。</p>
+<h3 id="34-driver-t5">3.4 driver 守护（T5）</h3>
+<pre><code class="language-text">driver1=9149
+killed 9149
+driver2=9515
+</code></pre>
+<p>终端里的守护命令：</p>
+<pre><code class="language-bash">while true; do node driver.mjs; echo &quot;driver exited, restart&quot;; sleep 2; done
+</code></pre>
+<p>日志：</p>
+<pre><code class="language-text">driver exited, restart
+2026-10-25T12:49:43.449Z work island driver starting, port 8791
+2026-10-25T12:49:43.486Z sse connected
+2026-10-25T12:49:43.489Z start rmvnszrdb9 ...
+</code></pre>
+<h3 id="35-t6">3.5 后台存活（T6）</h3>
+<p>按 Home 把 cccodroid 与工作岛都退到后台，等待 8 秒：</p>
+<pre><code class="language-text">driver: 9515
+gateway: 9842 / 32734
+工作岛 service: isForeground=true, foregroundId=1001
+通知: 正在干活 / 用 执行命令…
+</code></pre>
+<p>截图：<code>screenshots/04-background.png</code>（桌面顶部可见胶囊）。</p>
+<h3 id="36-t7">3.6 换轮节奏（T7）</h3>
+<p>driver 日志：</p>
+<pre><code class="language-text">13:01:59 done 13 秒
+13:02:07 idle
+13:02:08 start ...（下一轮）
+</code></pre>
+<p>完成提示只出现约 8 秒，随后收起；下一轮开始后恢复「正在干活」。</p>
+<hr>
+<h2 id="4">4. 截图索引</h2>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>screenshots/01-working.png</code></td>
+<td>工作态：鱼图标 +「正在干活」</td>
+</tr>
+<tr>
+<td><code>screenshots/02-done.png</code></td>
+<td>完成态：「任务完成」+ 勾选图标</td>
+</tr>
+<tr>
+<td><code>screenshots/03-idle.png</code></td>
+<td>8 秒后：岛上已收起，状态栏正常</td>
+</tr>
+<tr>
+<td><code>screenshots/04-background.png</code></td>
+<td>桌面/后台：胶囊仍在，driver 与网关存活</td>
+</tr>
+<tr>
+<td><code>screenshots/05-app.png</code></td>
+<td>应用界面：通知开 / 实时更新允许 / 电池不优化</td>
+</tr>
+<tr>
+<td><code>screenshots/06-final.png</code></td>
+<td>聊天界面 + 胶囊「正在干活」</td>
+</tr>
+<tr>
+<td><code>screenshots/09-bot-preview.png</code></td>
+<td>应用内 bot 预览：蓝色 DeepSeek bot +「干活 · 执行命令」</td>
+</tr>
+<tr>
+<td><code>screenshots/10-bot-states.png</code></td>
+<td>21 个模型的 bot + 14 个 look 的标识/表情对照</td>
+</tr>
+<tr>
+<td><code>screenshots/11-notification-bot.png</code></td>
+<td>通知面板：大图标是 bot，头顶 <code>!</code>，标题「等你确认」</td>
+</tr>
+<tr>
+<td><code>screenshots/12-island-ask.png</code></td>
+<td>岛上实时胶囊：bot + <code>!</code> +「等你确认」</td>
+</tr>
+<tr>
+<td><code>screenshots/13-island-thinking.png</code></td>
+<td>思考三帧：胶囊「思考中 1/4」，省略号亮点在动</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="5">5. 问题与修复记录</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>问题</th>
+<th>根因</th>
+<th>修复</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>普通通知不上岛</td>
+<td>缺少 ProgressStyle 与 promoted</td>
+<td>用 <code>Notification.ProgressStyle</code>，加 <code>android.requestPromotedOngoing</code> 与隐藏方法反射</td>
+</tr>
+<tr>
+<td>2</td>
+<td>完成后不收起</td>
+<td>监听器跟着单轮 Claude 进程被收走</td>
+<td>把监听搬进网关进程树（driver）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>定时器不生效</td>
+<td>ColorOS 后台冻结（<code>do_freezer_trap</code>）</td>
+<td>定时器搬到 driver；待机通知换 ID 1002</td>
+</tr>
+<tr>
+<td>4</td>
+<td>还在干活就报完成</td>
+<td>把 <code>run</code> 当成 <code>runs</code>；换轮空隙 <code>run</code> 为空</td>
+<td>看 <code>runs</code>；<code>run_end</code> 后 2.5s 复查；完成前 3s 宽限</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>am broadcast</code> 失败</td>
+<td>应用 uid 跨用户限制</td>
+<td>改 <code>am start-foreground-service --user 0</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>重装后首次更新失败</td>
+<td>服务尚未就绪</td>
+<td>driver 对 <code>am</code> 失败重试两次</td>
+</tr>
+<tr>
+<td>7</td>
+<td>应用被杀后起不来（长期存在）</td>
+<td><code>START_STICKY</code> 用 null intent 重启服务，<code>onStartCommand</code> 直接取 extra → NPE</td>
+<td>收到 null intent 直接 <code>stopSelf()</code>，等 driver 下一条状态重新拉起</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Copilot 变成一块白方块</td>
+<td>给素材染色用 <code>PorterDuffColorFilter(SRC_IN)</code> 画矩形，颜色滤镜看不到目标 alpha，把镂空填满了</td>
+<td>改成 <code>PorterDuffXfermode(SRC_IN)</code> 叠加，保留眼窝/镂空</td>
+</tr>
+<tr>
+<td>9</td>
+<td>某些模型一画就崩</td>
+<td>从素材采样出 1×1 配色场后仍按 <code>(30,30)</code> 取色</td>
+<td>按实际宽高取像素</td>
+</tr>
+<tr>
+<td>10</td>
+<td>静止时圆身体边上多三个小点</td>
+<td>DeepSeek 的鳍按「完全展开」画在身体外</td>
+<td>静止时收起，只保留肚子；扑腾时才露鳍</td>
+</tr>
+<tr>
+<td>11</td>
+<td>切换状态时模型「切出」/忽大忽小</td>
+<td>图标按「身体 + 标识」一起缩放，<code>!</code>/<code>?</code>/<code>≡</code> 出现时身体被迫缩小</td>
+<td>永远预留标识位置；身体比例恒定，切换只换表情不换尺寸</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="6">6. 未覆盖 / 限制</h2>
+<ul>
+<li><strong>force-stop 后恢复</strong>：无法在不结束当前会话的情况下测试；设计上依赖重开 cccodroid 后网关模块拉起 driver。</li>
+<li><strong>重启开机自启</strong>：<code>BOOT_COMPLETED</code> 接收器已声明，但未实际重启验证；ColorOS 的自启动开关需要用户手动打开。</li>
+<li><strong>长时间 Doze</strong>：只测了屏幕打开、后台 8 秒；未做 30 分钟以上的 Doze 测试。</li>
+<li><strong>并行多轮文案</strong>：岛上的短句可能跟随最后触发的事件；收工判定仍以 <code>runs</code> 为准。</li>
+<li><strong>exported 服务伪造</strong>：同机应用可以发 START/DONE，属于演示级安全，生产化需加签名权限。</li>
+<li><strong>自定义胶囊外观</strong>：未做 OPPO UPK 卡片，胶囊由系统绘制。</li>
+</ul>
+<hr>
+<h2 id="7">7. 结论</h2>
+<p>在 ColorOS 16 / Android 16 上，工作岛能够稳定显示 Claude 的真实工作状态，并在任务结束后自动收起。核心的三个非显然问题（推广、冻结、收工判定）均已定位并有对应实现。剩余限制主要来自系统规则（force-stop、Doze、OEM 自启动），已在文档中明确。</p></article><article class="doc page-break"><div class="doc-title">四、提交说明</div><h1 id="_1">工作岛 · 提交说明</h1>
+<blockquote>
+<p><strong>测试状态：Pre-release / Alpha</strong>
+仅在 <strong>OnePlus PJA110 · ColorOS 16.0.3 · Android 16（SDK 36）· cccodroid 0.4.2</strong> 上测试成功。
+其他 ColorOS 版本与品牌机型未验证；项目仍在测试阶段，接口、文案和文件布局可能变动。</p>
+</blockquote>
+<h2 id="1">1. 项目一句话</h2>
+<p>把 cccodroid 里 Claude 的实时工作状态，显示在 ColorOS 16 的流体云 / 灵动岛上；干活时显示当前动作，完成时显示用时，8 秒后自动收起。</p>
+<hr>
+<h2 id="2">2. 交付物清单</h2>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>文件</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>可安装包</td>
+<td><code>apk/WorkIsland.apk</code></td>
+<td><code>com.dafeiyu.workisland</code> 1.4，338,665 字节，SHA-256 <code>98c60825…bbb2</code></td>
+</tr>
+<tr>
+<td>应用源码</td>
+<td><code>source/app/</code></td>
+<td>AndroidManifest、12 个 Java 类（含 BotState/BotSpecs/BotForm/BotPainter/BotView）、res、<code>build.sh</code></td>
+</tr>
+<tr>
+<td>驱动</td>
+<td><code>source/driver/driver.mjs</code></td>
+<td>订阅网关事件流，发开始/更新/完成/收起</td>
+</tr>
+<tr>
+<td>网关接入</td>
+<td><code>source/gateway/work-island.mjs</code></td>
+<td>启动 driver + 30 秒看门狗</td>
+</tr>
+<tr>
+<td>网关入口</td>
+<td><code>source/gateway/server.mjs</code></td>
+<td>已接入版本（两行改动）</td>
+</tr>
+<tr>
+<td>网关原文件</td>
+<td><code>source/gateway/server.mjs.original</code></td>
+<td>回滚用</td>
+</tr>
+<tr>
+<td>方案设计</td>
+<td><code>docs/01-方案与设计.md</code></td>
+<td>架构、流程、状态机、关键技术、限制</td>
+</tr>
+<tr>
+<td>开发部署</td>
+<td><code>docs/02-开发与部署.md</code></td>
+<td>构建、安装、接入、保活、调试、回滚</td>
+</tr>
+<tr>
+<td>测试报告</td>
+<td><code>docs/03-测试报告.md</code></td>
+<td>18 个用例、关键日志、10 个问题修复记录</td>
+</tr>
+<tr>
+<td>截图</td>
+<td><code>screenshots/</code></td>
+<td>工作态、完成态、收起、后台存活、应用界面、四态 bot、标识</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="3-3">3. 验收步骤（3 分钟）</h2>
+<ol>
+<li>安装 <code>apk/WorkIsland.apk</code>。</li>
+<li>打开「工作岛」，确认界面显示：
+   - 通知：开
+   - 实时更新：允许
+   - 电池：不优化</li>
+<li>在 cccodroid 里发一条消息，观察状态栏：
+   - 干活时：黑色胶囊，鱼图标 +「正在干活」，下面跟着「用 执行命令…」等；
+   - 结束时：「任务完成」+ 用时；
+   - 8 秒后：胶囊消失，通知栏保留「工作岛 · 在后台等下一轮」。</li>
+<li>对照 <code>screenshots/</code> 中的四张状态图。</li>
+</ol>
+<blockquote>
+<p>如果 cccodroid 是全新环境，需要先按 <code>docs/02-开发与部署.md</code> 第 4 节接入网关模块，并重启一次 cccodroid。</p>
+</blockquote>
+<hr>
+<h2 id="4">4. 设计要点（答辩/评审用）</h2>
+<ol>
+<li><strong>三层解耦</strong>：网关（知道）→ driver（判断）→ 工作岛（画）。</li>
+<li><strong>Android 16 Live Updates</strong>：<code>ProgressStyle</code> + <code>POST_PROMOTED_NOTIFICATIONS</code> + <code>android.requestPromotedOngoing</code>，ColorOS 16 流体云直接接住，不需要 OPPO 私有白名单。</li>
+<li><strong>对抗 OEM 冻结</strong>：实测 ColorOS 会在后台把应用冻住（<code>do_freezer_trap</code>），所以定时器与事件流不放在应用里，放在活得比单轮任务更久的网关 driver 里。</li>
+<li><strong>收工判定四道关</strong>：看 <code>runs</code> 不看 <code>run</code>；<code>run_end</code> 后 2.5 秒复查；完成前 3 秒宽限；新轮次取消完成。解决了“还在干活就报完成”。</li>
+<li><strong>视觉统一</strong>：深色 <code>#1F1E1D</code>、陶土色 <code>#D97757</code>、鱼形图标，与 cccodroid 一致。</li>
+<li><strong>可回退</strong>：对宿主的改动只有两行 + 一个新模块，原文件有备份；应用可独立卸载。</li>
+</ol>
+<hr>
+<h2 id="5">5. 已知限制（如实说明）</h2>
+<ul>
+<li>cccodroid 被<strong>强行停止</strong>后，网关与 driver 都会消失，岛上可能停在最后一个状态；重开 cccodroid 恢复。</li>
+<li>ColorOS 的自启动、最近任务锁定需要用户手动开启；adb 白名单只能覆盖一部分。</li>
+<li>cccodroid 升级可能覆盖网关文件，需要重新接入（原文件已备份）。</li>
+<li>工作岛的 Service 是 exported 的，同机应用可以伪造显示状态；生产化需加签名级权限。</li>
+<li>胶囊外观由系统绘制，未使用 OPPO UPK 自定义卡片。</li>
+</ul>
+<hr>
+<h2 id="6">6. 变更记录</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>版本</th>
+<th>变更</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-10-25</td>
+<td>1.0</td>
+<td>完成 Android 16 Live Update 应用、driver、网关接入、保活与测试报告</td>
+</tr>
+<tr>
+<td>2026-10-25</td>
+<td>1.0</td>
+<td>修复：完成后不收起（driver 移入网关）、ColorOS 冻结（定时器外移）、提前完成（runs + 二次确认 + 宽限）</td>
+</tr>
+<tr>
+<td>2026-10-25</td>
+<td>1.1</td>
+<td>完成/收起文案可由网关下发（中英）；上游 0.4.7 改为进程内订阅（PR #21），本仓库保留 0.4.2–0.4.6 的独立 driver 部署方式；补 Apache-2.0 LICENSE 与第三方说明</td>
+</tr>
+<tr>
+<td>2026-10-26</td>
+<td>1.2</td>
+<td>Agent HUD 图标、按模型换图标（DeepSeek/Claude/OpenClaw/小鱼）、状态色与角标、标题跟动作、TodoWrite 清单 x/y；网关/驱动加 <code>state</code> extra</td>
+</tr>
+<tr>
+<td>2026-10-26</td>
+<td>1.3</td>
+<td>图标扩到 21 个模型；小图标 = 模型形状 + 两只眼睛（干活竖眼、完成闭眼、出错叉眼）；状态色</td>
+</tr>
+<tr>
+<td>2026-10-26</td>
+<td>1.4</td>
+<td>移植 agent-hud-open 的 bot 模型：四态 Wakes/Works/Asks/Done、14 look、7 个标识（<code>! ? ≡ × ⧗ … z</code>）、20+2 个 mark 的 BotSpec（轮廓/配色/眼睛/鳍/环/触须/四肢）；应用内 BotView 动效预览；通知大/小图标同源；「程序化 bot」开关；修 START_STICKY null intent 崩溃与 1×1 配色场越界</td>
+</tr>
+<tr>
+<td>2026-10-26</td>
+<td>1.4</td>
+<td>岛上信息增强：胶囊显示「状态 + 清单进度」，展开通知加计时、副标题、分段进度条；思考省略号逐帧动画；图标尺寸恒定，修「切出」</td>
+</tr>
+<tr>
+<td>2026-10-26</td>
+<td>1.4</td>
+<td>修「抽搐」：通知 ID 固定 1001，思考动画每 800 ms 一帧只换 bitmap（换 ID 会让胶囊收回再弹出）；删除 morph 唤醒帧；重新签名 APK</td>
+</tr>
+<tr>
+<td>2026-10-26</td>
+<td>1.4</td>
+<td>上游 PR #22（OPEN）：清单接 <code>tasks</code> 事件（TaskCreate/TaskUpdate）、认不出的工具走通用文案、错误正文固定；单测 19/19，<code>source/upstream-pr/</code> 已同步</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="7">7. 许可与致谢</h2>
+<ul>
+<li>应用与驱动代码为本次项目自写，可随交付包分发。</li>
+<li>使用了 cccodroid 的网关事件流与终端能力；未修改其 Java 层。</li>
+<li>四态 bot、14 look、7 个标识与 BotSpec 移植自
+  <a href="https://github.com/jazzenchen/agent-hud-open"><code>jazzenchen/agent-hud-open</code></a>（Apache-2.0），
+  许可全文见 <code>LICENSES/agent-hud-open-LICENSE.txt</code>。</li>
+<li>模型图标来自 LobeHub（MIT），商标归各自所有者，非官方关联；未使用 Anthropic 的
+  Clawd sprites。</li>
+<li>通知样式参考 Android 16 Live Updates 官方规范。</li>
+</ul></article><article class="doc page-break"><div class="doc-title">五、开发过程与真机测试</div><h1 id="_1">开发过程与真机测试</h1>
+<blockquote>
+<p>记录时间：2026-10-25–26
+设备：OnePlus PJA110 · ColorOS 16.0.3 · Android 16（SDK 36）
+应用：工作岛 1.4（versionCode 5，APK SHA-256 <code>98c60825…bbb2</code>）
+宿主：cccodroid 0.4.2（实机）+ 0.4.6（测试网关，PR 分支）</p>
+</blockquote>
+<p>这篇文档把「怎么一步步做出来、踩了哪些坑、在真机上测了什么」全部摊开。代码、截图、测试记录都在仓库里，过程不藏在对话里。</p>
+<hr>
+<h2 id="1">1. 时间线</h2>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>事情</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10-25 白天</td>
+<td>确定方向：把 cccodroid 里 Claude 的工作状态投到 ColorOS 16 流体云</td>
+</tr>
+<tr>
+<td>20:23</td>
+<td>第一个 Android 16 Live Update 原型，通知能被系统提升为胶囊</td>
+</tr>
+<tr>
+<td>20:24</td>
+<td>首次看到 <code>PROMOTED_ONGOING</code>，岛上出现「正在干活」</td>
+</tr>
+<tr>
+<td>20:36</td>
+<td>修「完成后不收起」：把监听从单轮 Claude 进程里搬出去</td>
+</tr>
+<tr>
+<td>20:40</td>
+<td>发现 ColorOS 冻结 <code>do_freezer_trap</code>，定时器外移到网关 driver</td>
+</tr>
+<tr>
+<td>20:45</td>
+<td>修「提前报完成」：<code>runs</code> + 二次确认 + 3 秒宽限</td>
+</tr>
+<tr>
+<td>21:25</td>
+<td>整理交付包（文档、源码、截图、APK、PDF）</td>
+</tr>
+<tr>
+<td>21:38</td>
+<td>公开仓库 <code>STUTTEFRFIX/WorkIsland-Android</code></td>
+</tr>
+<tr>
+<td>21:41</td>
+<td>公开 v1.0.0 Pre-release</td>
+</tr>
+<tr>
+<td>21:50</td>
+<td>向上游 cccodroid 开 draft PR #20</td>
+</tr>
+<tr>
+<td>22:15</td>
+<td>按上游 review 改 7 条；推 <code>9dabf2b</code></td>
+</tr>
+<tr>
+<td>22:22</td>
+<td>发现并修 <code>pm list packages</code> 漏 <code>--user 0</code></td>
+</tr>
+<tr>
+<td>22:25</td>
+<td>关闭 #20，重新提交单提交签名版 <strong>#21</strong></td>
+</tr>
+<tr>
+<td>22:36</td>
+<td>复测两轮衔接 + 停网关无残留，结果写进 #21</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="2">2. 遇到的坑与修法</h2>
+<h3 id="21">2.1 普通通知不上岛</h3>
+<ul>
+<li>现象：通知只在通知栏，没有胶囊。</li>
+<li>原因：没有 <code>ProgressStyle</code>，也没有请求 promoted。</li>
+<li>修法：<code>Notification.ProgressStyle</code> + <code>POST_PROMOTED_NOTIFICATIONS</code> +
+  <code>android.requestPromotedOngoing</code>（额外字段 + 隐藏方法反射）。</li>
+<li>验证：<code>flags=…|FOREGROUND_SERVICE|PROMOTED_ONGOING</code>。</li>
+</ul>
+<h3 id="22">2.2 完成后不收起</h3>
+<ul>
+<li>现象：任务结束，岛上还挂着「正在干活」。</li>
+<li>原因：监听器挂在单轮 Claude 的进程树里，轮次结束被一起收走，没来得及发「完成」。</li>
+<li>修法：监听移到网关进程树；后来按上游 review 进一步改成网关进程内订阅。</li>
+</ul>
+<h3 id="23">2.3 定时器不生效</h3>
+<ul>
+<li>现象：应用内的 8 秒收起定时器不走。</li>
+<li>原因：ColorOS 在后台冻结应用，连前台服务也冻：
+  <code>/proc/&lt;pid&gt;/task/&lt;tid&gt;/wchan = do_freezer_trap</code>。</li>
+<li>修法：定时器与事件流放到网关里的 driver/模块；工作岛只负责画。</li>
+</ul>
+<h3 id="24">2.4 提前报完成</h3>
+<ul>
+<li>现象：还在干活，岛上显示「任务完成」。</li>
+<li>原因：把「最近一轮」<code>run</code> 当成「所有轮次」；换轮空隙 <code>run</code> 短暂为空。</li>
+<li>修法：
+  1. 看 <code>runs</code>，不只看 <code>run</code>；
+  2. <code>run_end</code> 后 2.5 秒回 <code>/api/state</code> 复查；
+  3. 只认自己的 <code>runId</code>（后来改为统一用 <code>runs</code> 复查）；
+  4. 完成前再等 3 秒宽限，期间来了新的一轮就取消完成。</li>
+</ul>
+<h3 id="25-am">2.5 <code>am</code> 的跨用户限制</h3>
+<ul>
+<li>报错：<code>broadcast asks to run as user -2 … requires INTERACT_ACROSS_USERS_FULL</code>。</li>
+<li>修法：显式 <code>--user 0</code>；改用 <code>am start-foreground-service</code>，既绕开限制又能唤醒被冻结的应用；失败重试两次。</li>
+</ul>
+<h3 id="26-pm">2.6 <code>pm</code> 的跨用户限制</h3>
+<ul>
+<li>报错：<code>runListPackages … asks to run as user 10 … INTERACT_ACROSS_USERS_FULL</code>。</li>
+<li>修法：<code>pm list packages --user 0</code>；包可见性由清单 <code>&lt;queries&gt;</code> 解决。</li>
+</ul>
+<h3 id="27-review-7">2.7 上游 review 的 7 条</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>要求</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>不单独起进程，放进网关</td>
+<td>删除独立 driver；<code>onPublish</code> 进程内订阅 + <code>runList()</code>；SIGTERM 同步 IDLE</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>am</code> 限频、错误脱敏</td>
+<td>1.5 秒节流，补发最后一条；error 只显示「出错了」</td>
+</tr>
+<tr>
+<td>3</td>
+<td>设置开关，默认关</td>
+<td><code>SETTINGS.workIsland: false</code>；设置页复选框；打开才检测</td>
+</tr>
+<tr>
+<td>4</td>
+<td>检测不阻塞启动</td>
+<td>异步 <code>execFile</code>；<code>&lt;queries&gt;</code>；补 <code>--user 0</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>文案跟随界面语言</td>
+<td><code>LAST_LANG</code> 中/英两套；应用 1.1 接收完成/收起文案</td>
+</tr>
+<tr>
+<td>6</td>
+<td>单测 + 整机</td>
+<td>12 个单测；两轮衔接/停网关真机复测</td>
+</tr>
+<tr>
+<td>7</td>
+<td>许可与说明</td>
+<td>Apache-2.0 LICENSE；文档写第三方可选集成</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="3">3. 真机测试记录</h2>
+<h3 id="31">3.1 三态（首次）</h3>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>现象</th>
+<th>截图</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>工作</td>
+<td>鱼图标 +「正在干活」，下面「用 执行命令…」</td>
+<td><code>screenshots/01-working.png</code></td>
+</tr>
+<tr>
+<td>完成</td>
+<td>「任务完成」+ 用时</td>
+<td><code>screenshots/02-done.png</code></td>
+</tr>
+<tr>
+<td>收起</td>
+<td>8 秒后胶囊消失，通知栏留「工作岛 · 在后台等下一轮」</td>
+<td><code>screenshots/03-idle.png</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="32">3.2 并行轮次不误报</h3>
+<ul>
+<li>主任务 <code>rmvnszrdb6</code> 正在跑。</li>
+<li>通过 <code>/api/chat</code> 另起短任务 <code>rmvnszrdb7</code>（新会话），等它结束。</li>
+<li>结果：<code>/api/state</code> 只剩 <code>rmvnszrdb6</code>；岛上仍是「正在干活 / 正在处理…」，
+  <strong>没有</strong>出现「任务完成」。</li>
+</ul>
+<h3 id="33-driver">3.3 driver 被杀后自动恢复</h3>
+<ul>
+<li>旧部署方式下，杀掉 driver <code>pid=9149</code>。</li>
+<li>守护循环 2 秒内拉起 <code>pid=9515</code>；岛上状态未中断。</li>
+<li>新方案（#21）已改为网关进程内订阅，不再有独立进程可被杀。</li>
+</ul>
+<h3 id="34">3.4 后台存活</h3>
+<ul>
+<li>按 Home 把 cccodroid 和工作岛都退到后台，等待 8 秒。</li>
+<li>driver、网关、前台服务都还活着；岛仍显示「正在干活」。</li>
+<li>截图：<code>screenshots/04-background.png</code>。</li>
+</ul>
+<h3 id="35-pr-21">3.5 两轮衔接（最新代码，PR #21）</h3>
+<p>用 0.4.6 测试网关（8790）+ 工作岛 1.1；主网关旧 driver 暂时 SIGSTOP，避免两个发送者互相覆盖。</p>
+<pre><code>22:36:49  第 1 轮结束
+22:36:49  立刻发第 2 条
+22:36:51  runs=1  岛上：正在干活 / 等模型回复…
+22:36:56  runs=0  岛上：任务完成 / 用时 3 秒
+22:37:05  runs=0  岛上：工作岛 / 在后台等下一轮
+</code></pre>
+<p>关键点：<strong>两轮之间没有出现「任务完成」</strong>；完成提示在第 2 轮结束 3 秒后出现，8 秒后收起。</p>
+<h3 id="36">3.6 停网关无残留</h3>
+<ul>
+<li>对测试网关（8790）发 SIGTERM。</li>
+<li>进程退出；8790 无监听。</li>
+<li>没有 <code>work-island</code> 子进程或孤儿（进程内订阅，本来就没有子进程）。</li>
+<li>主网关 8791 与旧 driver 不受影响。</li>
+</ul>
+<h3 id="37">3.7 单元测试</h3>
+<pre><code class="language-bash">node scripts/test.mjs work-island
+# tests 12 / pass 12 / fail 0
+</code></pre>
+<p>覆盖：状态映射、完成+收起、换轮不误报、宽限期取消、中止、等确认、
+错误脱敏、英文、1.5 秒节流、清单进度、关开关发 IDLE。</p>
+<h3 id="38">3.8 构建与安装</h3>
+<ul>
+<li><code>versionCode=3</code>、<code>versionName=1.2</code>，约 138 KB。</li>
+<li><code>pm install -r</code> 成功；通知权限授予。</li>
+<li>应用内状态：通知开 / 实时更新允许 / 电池不优化。</li>
+<li>截图：<code>screenshots/05-app.png</code>。</li>
+</ul>
+<h3 id="39-2026-10-26">3.9 状态标题跟随动作 + 清单进度（2026-10-26）</h3>
+<ul>
+<li>胶囊标题不再固定为「正在干活」，而是跟着当前动作走：
+  读文件 / 执行命令 / 思考中 / 等模型 / 写回复 / 等你确认 / 整理清单 / 后台任务 / 出错了。</li>
+<li><code>TodoWrite</code> 工具会显示「清单 x/y」。</li>
+<li>单测新增清单进度用例，<code>node scripts/test.mjs work-island</code> → <strong>12/12</strong>。</li>
+<li>驱动已重启；真机标题由主人目视确认。</li>
+</ul>
+<h3 id="310-2026-10-26">3.10 图标与状态色（2026-10-26）</h3>
+<ul>
+<li>启动图标换成 Agent HUD 的胶囊 + 辉光。</li>
+<li>岛上图标可选 Agent HUD / DeepSeek / Claude / OpenClaw / 小鱼；选择器在应用里。</li>
+<li>小图标 = 模型形状 + 状态色 + 右下角角标；大图标 = 彩色模型图标。</li>
+<li>驱动/核心发送 <code>state</code>，应用映射颜色/角标；执行命令实测为蓝色胶囊。</li>
+<li>截图：<code>screenshots/07-icon-state.png</code>、<code>screenshots/08-icon-picker.png</code>。</li>
+<li>单测仍为 12/12；图标/选择器为真机目视验证。</li>
+</ul>
+<h3 id="311-bot-agent-hud-2026-10-26">3.11 四态 bot：把 agent-hud 的「灵魂」搬进来（2026-10-26）</h3>
+<p>主人给了 <code>jazzenchen/agent-hud-open</code>，说四态、14 look、7 个标识和每个 agent 的体征
+「就是灵魂」，想要。实现过程：</p>
+<ol>
+<li>在 <code>workspace/agent-hud-open</code> 找到 Swift → TS 的完整移植：<code>bot-state</code>、<code>bot-signs</code>、
+   <code>bot-spec</code>、<code>bot-form</code>、<code>bot-renderer</code>、<code>bot-motion</code>。</li>
+<li>Java 侧新增 6 个类：
+   - <code>BotState</code>：14 look、四态、标识优先级、旧状态名兼容；
+   - <code>BotSpecs</code>：20 个 agent + hud/小鱼的形状/配色/眼睛/装饰；
+   - <code>BotForm</code>：素材 256×256 径向 360 点 + 60×60 配色场；
+   - <code>BotPainter</code>：轮廓、配色、鳍/环/缺口/触须/四肢、眼睛、头顶点阵标识；
+   - <code>BotView</code>：应用内逐帧动效（0.5 s 变形、呼吸、眨眼、起跳、笑眼）；
+   - <code>BotSheet</code>：21 个模型 × 14 look 的对照表，<code>--ez sheet true</code> 打开。</li>
+<li><code>Notifier</code> 的小图标（160 px）和大图标（256 px）都改走 <code>BotPainter</code>；
+   <code>MainActivity</code> 加四态按钮、look 选择器和「程序化 bot」开关。</li>
+<li>driver 的 <code>state</code> 从 <code>running/reading/...</code> 细化到 <code>tool-command/tool-read/tool-edit/...</code>，
+   并给 <code>AskUserQuestion</code> / <code>ExitPlanMode</code> 单独的 <code>question</code> / <code>permission</code>。</li>
+<li>真机踩坑：
+   - 只画出了鳍，身体不见 → 构造 <code>BotForm</code> 时忘了把采样出的 <code>logo/body</code> 数组传进去；
+   - Copilot 是一块白方块 → 颜色滤镜 <code>SRC_IN</code> 看不到目标 alpha，把镂空填满，改用 Xfermode；
+   - 一画就崩 → 1×1 配色场取 <code>(30,30)</code> 越界；
+   - 圆身体边上的三个小点 → DeepSeek 静止时露出的鳍尖，收起来；
+   - 图标偏小 → 按内容包围盒放大并居中（约 1.3 倍）。</li>
+<li>验证：21 个模型 × 14 look 对照表一次生成；岛上「等你确认」显示 <code>!</code>；
+   通知大图标是 bot；<code>screenshots/09</code>–<code>12</code>。</li>
+<li>另外修掉一个长期问题：<code>START_STICKY</code> 用 null intent 重启 <code>IslandService</code> 会 NPE 崩溃，
+   这是「应用被杀后起不来」的一半原因。</li>
+<li>主人反馈「岛上模型旁边太空」：折叠胶囊改用 <code>setShortCriticalText</code>（状态 + 清单进度），
+   展开通知加 <code>setSubText</code>、计时和分段进度条；清单 4 条就画 4 段。</li>
+<li>主人反馈「思考时点点不动、切换生硬、模型切出」：
+   - 先试过换通知 ID 重建（每 380 ms 一帧），结果胶囊每次收回再弹出，主人说像「抽搐」；
+   - 查清后改成：永远同一个通知 ID，driver 每 800 ms 推一帧 <code>anim</code>，只换 bitmap；
+     上一帧的 <code>am</code> 回来再发下一帧，胶囊不再收回；
+   - 实测同一 ID 的 thinking / error 更新，图标像素不同——之前「ColorOS 缓存图标」的结论是错的；
+   - 删掉每轮开始的 <code>morph 0/45/80</code> 唤醒帧：第一帧是 logo 会被缓存一整轮，看起来像「模型切出」；
+   - 图标按 look/anim 做 LRU 缓存；身体比例恒定（永远给标识留位置），
+     所以 <code>!</code> <code>?</code> <code>≡</code> 出现时 bot 不会突然缩小、贴边被裁。</li>
+</ol>
+<hr>
+<h2 id="4">4. 尚未验证 / 已知限制</h2>
+<ul>
+<li><strong>只在 ColorOS 16 / Android 16 验证</strong>；其他 ColorOS 版本与品牌机型未测。</li>
+<li><strong>0.4.7 targetSdk 36 的 <code>&lt;queries&gt;</code> 检测</strong>：现装 0.4.2 没有 <code>&lt;queries&gt;</code>，整机测试时用
+  <code>CCAPP_WORK_ISLAND=1</code> 跳过检测；36 包需要真机再确认一次。</li>
+<li><strong>设置页复选框</strong>：<code>set-workisland</code> 的 API 开关已测，WebView 内的点击未单独走一遍。</li>
+<li><strong>强行停止（force-stop）</strong>：网关来不及发 IDLE，岛上会停在最后状态；重开 cccodroid 恢复。</li>
+<li><strong>工作岛通知服务是 exported 的</strong>：同机应用可以伪造显示状态（只影响显示）。</li>
+<li><strong>胶囊外观</strong>由系统绘制，未使用 OPPO UPK 自定义卡片。</li>
+</ul>
+<hr>
+<h2 id="5">5. 过程链接</h2>
+<ul>
+<li>上游 PR #21：https://github.com/greyoak111/cccodroid/pull/21</li>
+<li>上游 PR #22（OPEN，跟进标题/清单/state 与 review 修正）：https://github.com/greyoak111/cccodroid/pull/22</li>
+<li>上游 review 与回复：#20（已关闭）→ #21</li>
+<li>整机复测评论：https://github.com/greyoak111/cccodroid/pull/21#issuecomment-6398984906</li>
+<li>工作岛仓库：https://github.com/STUTTEFRFIX/WorkIsland-Android</li>
+<li>工作岛 1.2 Release：https://github.com/STUTTEFRFIX/WorkIsland-Android/releases/tag/v1.2.0</li>
+</ul>
+<p>代码、截图、测试命令与日志都在这个仓库里；这篇文档会随着后续复测继续补。</p></article><article class="doc page-break"><div class="doc-title">六、状态与保活</div><h1 id="_1">状态展示与后台保活</h1>
+<blockquote>
+<p>2026-10-26
+设备：OnePlus PJA110 · ColorOS 16.0.3 · Android 16
+应用：工作岛 1.4 · cccodroid 0.4.2（实机）</p>
+</blockquote>
+<p>这篇文档分两部分：<strong>岛上现在能显示哪些状态</strong>，以及 <strong>应用被系统杀掉后怎么恢复</strong>。</p>
+<hr>
+<h2 id="_2">一、状态标题与清单进度</h2>
+<h3 id="11">1.1 标题跟着动作走</h3>
+<p>以前胶囊标题固定为「正在干活」，具体动作藏在展开里。现在标题直接是当前动作，一眼能看出我在干嘛：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>胶囊标题</th>
+<th>展开文本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>刚开始</td>
+<td>正在干活</td>
+<td>正在处理…</td>
+</tr>
+<tr>
+<td>等模型</td>
+<td>等模型</td>
+<td>等模型回复…</td>
+</tr>
+<tr>
+<td>思考</td>
+<td>思考中</td>
+<td>正在想…</td>
+</tr>
+<tr>
+<td>写回复</td>
+<td>写回复</td>
+<td>正在写回复…</td>
+</tr>
+<tr>
+<td>读文件</td>
+<td>读文件</td>
+<td>用 读文件…</td>
+</tr>
+<tr>
+<td>改文件</td>
+<td>改文件</td>
+<td>用 改文件…</td>
+</tr>
+<tr>
+<td>执行命令</td>
+<td>执行命令</td>
+<td>用 执行命令…</td>
+</tr>
+<tr>
+<td>搜代码</td>
+<td>搜代码</td>
+<td>用 搜代码…</td>
+</tr>
+<tr>
+<td>查资料</td>
+<td>查资料</td>
+<td>用 查资料…</td>
+</tr>
+<tr>
+<td>子任务</td>
+<td>子任务</td>
+<td>子任务：&lt;描述&gt;…</td>
+</tr>
+<tr>
+<td>等你确认</td>
+<td>等你确认</td>
+<td>需要你确认：&lt;工具&gt;</td>
+</tr>
+<tr>
+<td>整理上下文</td>
+<td>整理上下文</td>
+<td>整理上下文…</td>
+</tr>
+<tr>
+<td>后台任务</td>
+<td>后台任务</td>
+<td>后台任务还在跑…</td>
+</tr>
+<tr>
+<td>出错</td>
+<td>出错了</td>
+<td>（空，不显示内容）</td>
+</tr>
+<tr>
+<td>完成</td>
+<td>任务完成</td>
+<td>用时 X</td>
+</tr>
+<tr>
+<td>收起</td>
+<td>工作岛</td>
+<td>在后台等下一轮</td>
+</tr>
+</tbody>
+</table>
+<p>标题控制在 3–5 个汉字，避免胶囊截断；更长的描述放展开文本。</p>
+<h3 id="12">1.2 清单进度</h3>
+<p><code>TodoWrite</code> 工具调用会解析 <code>input.todos</code>，统计 <code>completed</code> 数量：</p>
+<ul>
+<li>标题：<strong>整理清单</strong></li>
+<li>文本：<strong>清单 2/5</strong></li>
+</ul>
+<p>这样多步骤任务不用展开也能看到进度。</p>
+<h3 id="13">1.3 错误脱敏</h3>
+<p><code>error</code> 事件的 <code>message</code> 可能包含路径、命令输出等内容，不再转发：</p>
+<ul>
+<li>标题：<strong>出错了</strong></li>
+<li>文本：空</li>
+</ul>
+<h3 id="14">1.4 实现位置</h3>
+<table>
+<thead>
+<tr>
+<th>部署方式</th>
+<th>文件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.4.2–0.4.6 独立 driver</td>
+<td><code>source/driver/driver.mjs</code></td>
+</tr>
+<tr>
+<td>0.4.7 上游进程内集成</td>
+<td><code>source/upstream-pr/gateway/gw/work-island-core.mjs</code></td>
+</tr>
+</tbody>
+</table>
+<p>单测：<code>node scripts/test.mjs work-island</code> → <strong>12/12</strong>（新增清单进度用例）。</p>
+<h3 id="15-bot">1.5 图标：四态 bot + 模型体征</h3>
+<ul>
+<li><strong>启动图标</strong>：Agent HUD 的黑色胶囊 + 绿/黄/红辉光（来自 agent-hud-open，Apache-2.0）。</li>
+<li><strong>岛上图标</strong>：应用内「岛上图标（按模型自选）」可选 <strong>21 个</strong>：
+  Agent HUD / DeepSeek / Claude / Codex / Grok / Cursor / Copilot / Antigravity /
+  Kimi / Qwen / OpenCode / Pi / Hermes / GLM / ZCode / Qoder / CodeBuddy /
+  WorkBuddy / OpenClaw / Devin / 小鱼。</li>
+<li><strong>四态</strong>：Wakes（只显示 logo）→ Works（bot）→ Asks（bot + <code>! ? ≡</code>）→ Done（笑眼）。</li>
+<li><strong>小图标</strong>：160 px，按当前 look 画 bot + 头顶标识；状态色仍用于通知底色。</li>
+<li><strong>大图标</strong>：256 px 的同一只 bot，展开通知可见。</li>
+<li><strong>折叠胶囊</strong>：<code>setShortCriticalText</code> 显示「状态 + 清单进度」，例如 <code>思考中 1/4</code>、
+  <code>等你确认</code>、<code>整理清单 2/4</code>；不再只显示一个动作词。</li>
+<li><strong>展开通知</strong>：标题带进度（<code>整理清单 · 1/4</code>），副标题是细节（<code>正在改 BotPainter · 清单 1/4</code>），
+  右上角计时在走；进度条按清单分段，已完成的段亮起。</li>
+<li><strong>动效</strong>：永远同一个通知 ID；driver 每 800 ms 推一帧 <code>anim</code>（省略号亮点跳、眼睛左右瞟、身体轻浮），
+  只换 bitmap，不重建通知——换 ID 会让胶囊收回再弹出（「抽搐」）。</li>
+<li><strong>第一帧</strong>：直接是最终 bot，不发 <code>morph</code> 唤醒帧（第一帧是 logo 会被缓存一整轮）。</li>
+<li><strong>尺寸恒定</strong>：图标永远给头顶标识预留位置，<code>!</code> <code>?</code> <code>≡</code> 出现/消失时 bot 不会忽大忽小。</li>
+<li><strong>开关</strong>：「程序化 bot（四态 + 标识 + 体征）」关掉后，小/大图标退回 1.2 的简笔模型形状。</li>
+<li>状态色（通知 color，不是 bot 颜色）：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>颜色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>working</td>
+<td><code>#D97757</code> 陶土</td>
+</tr>
+<tr>
+<td>thinking</td>
+<td><code>#5B8DEF</code> 蓝</td>
+</tr>
+<tr>
+<td>reading</td>
+<td><code>#7C6CF0</code> 紫</td>
+</tr>
+<tr>
+<td>writing</td>
+<td><code>#D97757</code> 陶土</td>
+</tr>
+<tr>
+<td>running</td>
+<td><code>#4C9AFF</code> 亮蓝</td>
+</tr>
+<tr>
+<td>searching</td>
+<td><code>#00A6A6</code> 青</td>
+</tr>
+<tr>
+<td>waiting</td>
+<td><code>#E6A23C</code> 黄</td>
+</tr>
+<tr>
+<td>done</td>
+<td><code>#4CAF50</code> 绿</td>
+</tr>
+<tr>
+<td>error</td>
+<td><code>#E5484D</code> 红</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>驱动/核心在 <code>UPDATE</code> 里带 <code>state</code>，应用先映射成 look，再画 bot。</li>
+<li>截图：<code>screenshots/09-bot-preview.png</code>（应用内预览）、<code>10-bot-states.png</code>
+  （21 个模型 + 14 个 look 对照）、<code>11-notification-bot.png</code>（通知里的 bot + <code>!</code>）、
+  <code>12-island-ask.png</code>（岛上「等你确认」）。</li>
+<li>许可：Agent HUD 与 bot 渲染移植自 agent-hud-open（Apache-2.0）；模型图标来自
+  LobeHub（MIT），商标归各自所有者，非官方关联；未使用 Anthropic 的 Clawd sprites。
+  见 <a href="../THIRD_PARTY.md"><code>THIRD_PARTY.md</code></a>。</li>
+</ul>
+<h3 id="16-look">1.6 状态名 → look → 标识</h3>
+<table>
+<thead>
+<tr>
+<th>driver 发送</th>
+<th>look</th>
+<th>阶段</th>
+<th>头顶</th>
+<th>眼睛</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>waiting</code> / <code>permission</code></td>
+<td>permission</td>
+<td>Asks</td>
+<td><code>!</code></td>
+<td>睁大</td>
+</tr>
+<tr>
+<td><code>question</code></td>
+<td>question</td>
+<td>Asks</td>
+<td><code>?</code></td>
+<td>睁大、左右看</td>
+</tr>
+<tr>
+<td><code>plan</code> / <code>planning</code> / <code>TodoWrite</code></td>
+<td>plan</td>
+<td>Asks</td>
+<td><code>≡</code></td>
+<td>睁大</td>
+</tr>
+<tr>
+<td><code>thinking</code> / <code>subtask</code> / <code>retry</code></td>
+<td>thinking</td>
+<td>Works</td>
+<td><code>…</code></td>
+<td>向上瞟</td>
+</tr>
+<tr>
+<td><code>writing</code></td>
+<td>tool-edit</td>
+<td>Works</td>
+<td>—</td>
+<td>平视</td>
+</tr>
+<tr>
+<td><code>running</code> / <code>Bash</code></td>
+<td>tool-command</td>
+<td>Works</td>
+<td>—</td>
+<td>平视</td>
+</tr>
+<tr>
+<td><code>reading</code> / <code>searching</code></td>
+<td>tool-read</td>
+<td>Works</td>
+<td>—</td>
+<td>平视</td>
+</tr>
+<tr>
+<td><code>working</code> / <code>plain</code></td>
+<td>plain</td>
+<td>Works</td>
+<td>—</td>
+<td>平视</td>
+</tr>
+<tr>
+<td><code>compacting</code></td>
+<td>compacting</td>
+<td>Works</td>
+<td>—</td>
+<td>眯眼</td>
+</tr>
+<tr>
+<td><code>asleep</code></td>
+<td>asleep</td>
+<td>—</td>
+<td><code>z</code></td>
+<td>闭眼</td>
+</tr>
+<tr>
+<td><code>no-news</code></td>
+<td>no-news</td>
+<td>—</td>
+<td>—</td>
+<td>半透明</td>
+</tr>
+<tr>
+<td><code>idle</code></td>
+<td>idle</td>
+<td>Wakes</td>
+<td>—</td>
+<td>只显示 logo</td>
+</tr>
+<tr>
+<td><code>done</code></td>
+<td>done</td>
+<td>Done</td>
+<td>—</td>
+<td>笑眼</td>
+</tr>
+<tr>
+<td><code>error</code> / <code>failed</code></td>
+<td>任意</td>
+<td>—</td>
+<td><code>×</code></td>
+<td>叉眼</td>
+</tr>
+</tbody>
+</table>
+<p>新名字和旧名字都认；driver 更新在 <code>source/driver/driver.mjs</code>，网关重启后生效。
+<code>step</code> 仍会由 driver 发出来，但 1.4 不再显示「第 N 步」——胶囊回到工作状态 + 清单进度。</p>
+<p><strong>两个这次修掉的坑：</strong></p>
+<ul>
+<li><code>IslandService</code> 被系统以 <code>START_STICKY</code> + null intent 重启时会直接 NPE 崩溃——
+  这就是之前「应用被杀后起不来」的一半原因；现在收到 null intent 直接 <code>stopSelf</code>。</li>
+<li>从素材采样出的配色场如果是 1×1 色块，取 <code>(30,30)</code> 会越界崩溃；现在按实际宽高取。</li>
+</ul>
+<hr>
+<h2 id="_3">二、后台保活与自动恢复</h2>
+<h3 id="21">2.1 发生了什么</h3>
+<p>2026-10-25 夜里到 10-26 早上，工作岛应用被系统杀掉了：</p>
+<ul>
+<li>应用进程、前台服务、通知全部消失；</li>
+<li>cccodroid 的网关和 driver 还活着；</li>
+<li>早上岛上没有任何状态，直到手动打开一次「工作岛」才恢复。</li>
+</ul>
+<p>这不是驱动的问题，是 Android / ColorOS 把应用停掉了。</p>
+<h3 id="22">2.2 为什么会这样</h3>
+<ol>
+<li><strong>ColorOS 的电池管理会杀后台</strong>。前台服务（FGS）不是免死金牌；深度睡眠/应用速冻/省电策略都可能把进程停掉。</li>
+<li><strong>Android 10+ 禁止后台启动 Activity</strong>。ccc odroid 的 driver 用 <code>am start</code> 起不来一个被系统停掉的应用；设备工具同样被挡。</li>
+<li><strong>Shizuku 当时没在跑</strong>，所以 <code>priv</code>（shell 身份）也帮不上忙。</li>
+<li><strong>强行停止（force-stop）是设计上不可自救的</strong>：应用被标记为 stopped 后，广播、闹钟、JobScheduler 都不会再唤起它，直到用户手动打开。</li>
+</ol>
+<h3 id="23">2.3 恢复能力矩阵</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>能否自动恢复</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>划掉最近任务</td>
+<td>能</td>
+<td><code>stopWithTask=false</code>，服务继续跑</td>
+</tr>
+<tr>
+<td>系统内存回收（普通 kill）</td>
+<td>通常能</td>
+<td><code>START_STICKY</code> + 闹钟看门狗</td>
+</tr>
+<tr>
+<td>ColorOS 深度睡眠/速冻</td>
+<td>看情况</td>
+<td>进程被杀后，闹钟/看门狗可尝试拉起；被 force-stop 则不行</td>
+</tr>
+<tr>
+<td>强行停止（force-stop）</td>
+<td><strong>不能</strong></td>
+<td>必须手动打开应用，或重启手机（BOOT_COMPLETED）</td>
+</tr>
+<tr>
+<td>重启手机</td>
+<td>能</td>
+<td><code>BOOT_COMPLETED</code> 接收器会拉起服务</td>
+</tr>
+<tr>
+<td>Shizuku 在跑</td>
+<td>能补一刀</td>
+<td>shell 身份可以 <code>am start-foreground-service</code> 拉起被停的应用</td>
+</tr>
+</tbody>
+</table>
+<h3 id="24-coloros">2.4 ColorOS 推荐设置（手动）</h3>
+<p>这几步 adb 管不到，需要在系统设置里点：</p>
+<ol>
+<li><strong>设置 → 应用 → 应用管理 → 工作岛 → 耗电管理</strong>
+   - 选「允许后台活动」/「不优化」。</li>
+<li><strong>设置 → 应用 → 自启动</strong>
+   - 把「工作岛」打开。</li>
+<li><strong>最近任务 → 长按工作岛卡片 → 锁定</strong>
+   - 防止划掉/清理时被带走。</li>
+<li><strong>设置 → 电池 → 更多 → 睡眠待机优化</strong>
+   - 把「工作岛」设为「不优化」。</li>
+<li>如果开了「应用速冻」/「深度睡眠」，把工作岛加入白名单。</li>
+</ol>
+<p>工作岛应用内已经有「后台保活设置」按钮，会跳到电池优化页；状态行显示「电池：不优化」才算生效。</p>
+<h3 id="25-app">2.5 App 侧看门狗（待实现）</h3>
+<p>计划在应用里加一个 <code>AlarmManager</code> 定时器：</p>
+<ul>
+<li>每 15 分钟发一次 <code>PendingIntent</code> 给 <code>WatchdogReceiver</code>；</li>
+<li>接收器检查服务是否在跑，不在就 <code>startForegroundService</code>；</li>
+<li>如果通知已经过期/丢失，重新发一条待机通知。</li>
+</ul>
+<p>限制：force-stop 后闹钟会被取消，仍然需要手动打开；Doze 下闹钟可能被延后，不能保证分钟级准时。</p>
+<h3 id="26-driver">2.6 Driver 侧兜底（可选）</h3>
+<p>driver 的 <code>am start-foreground-service</code> 失败时，可以再试一次 <code>priv -- am start-foreground-service ...</code>：</p>
+<ul>
+<li>前提：Shizuku 在运行；</li>
+<li>优点：shell 身份可以拉起被系统停掉的应用；</li>
+<li>缺点：多一个 Shizuku 依赖；<code>priv</code> 命令会进审计日志。</li>
+</ul>
+<p>当前只在个人部署里考虑，没有加进上游 PR 的默认路径。</p>
+<h3 id="27">2.7 验证方法</h3>
+<ol>
+<li>打开「工作岛」，确认状态行：通知开 / 实时更新允许 / 电池不优化。</li>
+<li>正常划掉最近任务，等 8 秒：服务应还在（岛还挂着或待机通知还在）。</li>
+<li>用 Shizuku 执行 <code>am force-stop com.dafeiyu.workisland</code>：
+   - 预期：应用停掉，岛消失；<code>am start</code>/设备工具都起不来；
+   - 手动打开应用后恢复。</li>
+<li>用 <code>am kill com.dafeiyu.workisland</code>（普通 kill）：
+   - 预期：<code>START_STICKY</code> 或闹钟看门狗把它拉回来。</li>
+<li>重启手机：开机后应自动出现待机通知。</li>
+</ol>
+<h3 id="28">2.8 限制</h3>
+<ul>
+<li><strong>force-stop 不可自救</strong>，这是 Android 的设计，不是应用 bug。</li>
+<li>不同 ColorOS 版本的设置项名称略有差异；找不到时按「电池 / 自启动 / 后台活动」三个关键词找。</li>
+<li>闹钟看门狗在 Doze 下可能延迟；不能替代 ColorOS 白名单。</li>
+<li>不建议为了保活去要 root；风险大于收益。</li>
+</ul>
+<hr>
+<h2 id="_4">三、建议</h2>
+<ol>
+<li>先把 2.4 的五个开关都打开——这是最有效的一步。</li>
+<li>加上 2.5 的闹钟看门狗，覆盖普通 kill / 系统回收。</li>
+<li>Shizuku 如果常开，可以在 driver 里加 <code>priv</code> 兜底；不常开就不加。</li>
+<li>接受 force-stop 需要手动打开这一条，不要为它引入 root。</li>
+</ol>
+<hr>
+<h2 id="_5">相关</h2>
+<ul>
+<li>状态标题的代码：<code>source/driver/driver.mjs</code>、<code>source/upstream-pr/gateway/gw/work-island-core.mjs</code></li>
+<li>单测：<code>source/upstream-pr/gateway/tests/work-island.test.mjs</code></li>
+<li>上游 PR：#21（已合并）、#22（OPEN，标题/清单/state 与 review 修正）</li>
+<li>应用仓库：https://github.com/STUTTEFRFIX/WorkIsland-Android</li>
+</ul></article>
+<section class="gallery page-break"><h2>界面截图</h2><div class="grid"><figure><img src="screenshots/01-working.png" alt="工作态：鱼图标 +「正在干活」"><figcaption>工作态：鱼图标 +「正在干活」</figcaption></figure><figure><img src="screenshots/02-done.png" alt="完成态：「任务完成」+ 用时"><figcaption>完成态：「任务完成」+ 用时</figcaption></figure><figure><img src="screenshots/03-idle.png" alt="8 秒后：岛上收起"><figcaption>8 秒后：岛上收起</figcaption></figure><figure><img src="screenshots/04-background.png" alt="后台：两个应用都退到桌面，岛仍在"><figcaption>后台：两个应用都退到桌面，岛仍在</figcaption></figure><figure><img src="screenshots/05-app.png" alt="应用界面：通知开 / 实时更新允许 / 电池不优化"><figcaption>应用界面：通知开 / 实时更新允许 / 电池不优化</figcaption></figure><figure><img src="screenshots/06-final.png" alt="聊天界面 + 胶囊"><figcaption>聊天界面 + 胶囊</figcaption></figure><figure><img src="screenshots/09-bot-preview.png" alt="四态 bot：应用内预览（干活 · 执行命令）"><figcaption>四态 bot：应用内预览（干活 · 执行命令）</figcaption></figure><figure><img src="screenshots/10-bot-states.png" alt="21 个模型 + 14 个 look 的对照表"><figcaption>21 个模型 + 14 个 look 的对照表</figcaption></figure><figure><img src="screenshots/11-notification-bot.png" alt="通知面板：bot 大图标 + 头顶 !"><figcaption>通知面板：bot 大图标 + 头顶 !</figcaption></figure><figure><img src="screenshots/12-island-ask.png" alt="岛上「等你确认」+ !"><figcaption>岛上「等你确认」+ !</figcaption></figure><figure><img src="screenshots/13-island-thinking.png" alt="思考三帧：胶囊「思考中 1/4」，省略号亮点在动"><figcaption>思考三帧：胶囊「思考中 1/4」，省略号亮点在动</figcaption></figure></div></section>
+</body>
+</html>
