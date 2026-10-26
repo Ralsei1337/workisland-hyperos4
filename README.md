@@ -99,8 +99,14 @@ curl -s "127.0.0.1:8799/state?state=reading&text=Notifier.java&todoDone=2&todoTo
 curl -s "127.0.0.1:8799/done?title=任务完成&text=用时 3 分"
 ```
 
-插件 `dsh-work-island`（`source/dsha-plugin/`）给 DeepSeek 注册了 `island` 工具，
-安装后模型可以直接调用；`tools/island` 是给 shell 用的薄封装。
+插件 `dsh-work-island`（`source/dsha-plugin/`）有两层：
+
+- **自动跟随（默认）**：监听 DSH 的 `session/event`，回合开始显示 `思考中`，工具调用显示
+  `执行中 / 读文件 / 写文件 / 联网查`，清单更新显示 `执行中 2/5`，回合结束显示 `任务完成`——
+  全程不需要模型手动推。
+- **手动控制**：注册 `island` 工具，需要覆盖当前显示时才调用。
+
+安装包在 `source/dsha-plugin/dsh-work-island-0.2.0.tar.gz`，`tools/island` 是给 shell 用的薄封装。
 
 - 设计与安装步骤：[`docs/08-DSHA集成.md`](docs/08-DSHA集成.md)
 - 不改 DSHA 任何文件：插件是用户插件，安装后重启一次 Web 生效

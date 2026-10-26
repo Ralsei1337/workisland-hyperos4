@@ -1,6 +1,6 @@
 {
   "name": "dsh-work-island",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Push DeepSeek Harness run state to WorkIsland on the phone status bar (HyperOS super island / ColorOS fluid cloud)",
   "type": "module",
   "main": "lib/index.js",

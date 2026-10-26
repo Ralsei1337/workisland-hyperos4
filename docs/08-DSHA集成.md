@@ -104,6 +104,22 @@ source/dsha-plugin/dsh-work-island/
 DSHA 的插件管理器要求：合法 npm 名 + 合法 semver + `dsh.bundle.patch` 指向真实存在的补丁文件，
 否则会报「普通 npm 包不是 dsh 插件」。`cordis.patch.yml` 负责把插件挂进 profile 的 bundle 列表。
 
+### 自动跟随（0.2.0）
+
+0.2.0 起插件自己监听 `session/event`，不需要模型主动调用工具：
+
+| DSH 事件 | 岛上自动显示 |
+|---|---|
+| `turn/start` | `思考中` |
+| `tool/call` → bash/exec | `执行中` |
+| `tool/call` → read/grep/glob | `读文件` |
+| `tool/call` → write/edit/patch | `写文件` |
+| `tool/call` → web/fetch | `联网查` |
+| `todo/write` | `执行中 2/5`（带清单进度） |
+| `turn/end` | `任务完成`（8 秒后自动收起） |
+
+`island` 工具仍然保留，用于想覆盖当前显示的场景。
+
 ### 工具签名
 
 ```text
@@ -126,10 +142,10 @@ island(
 
 ```bash
 # 1) 打包（在 source/dsha-plugin 下）
-tar czf dsh-work-island-0.1.2.tar.gz dsh-work-island
+tar czf dsh-work-island-0.2.0.tar.gz dsh-work-island
 
 # 2) 用 DSHA 自带的插件管理器导入（不需要改任何 DSHA 文件）
-dsha-plugin import /root/dsh-plugins/dsh-work-island-0.1.2.tar.gz
+dsha-plugin import /root/dsh-plugins/dsh-work-island-0.2.0.tar.gz
 #    输出里会带 previewId 和 confirmationSha256
 
 # 3) 确认安装（预览 → 提交）
@@ -142,7 +158,7 @@ dsha-plugin list        # 应能看到 dsh-work-island  enabled=true
 安装后 `dsha-plugin list` 里会出现：
 
 ```json
-{"name":"dsh-work-island","enabled":true,"origin":"user","version":"0.1.2","loadState":"queued"}
+{"name":"dsh-work-island","enabled":true,"origin":"user","version":"0.2.0","loadState":"queued"}
 ```
 
 `loadState: queued` 表示已登记、等 Web 下次启动加载。

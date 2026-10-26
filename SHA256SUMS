@@ -2,8 +2,8 @@
 cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30  ./LICENSE
 add9d7531d1b21646317a8958e38fc727506fa39d24bdecb44154d943c82753a  ./LICENSES/LobeIcons-LICENSE.txt
 c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4  ./LICENSES/agent-hud-open-LICENSE.txt
-bac6881164bcad1e5f0ace212a82aa96f59efe15a97e957cd5ba740ef39ff094  ./README.md
-0c8068a57b69140bcd1fb6b16171e319addab951a2f1c10f37b5b7f8c8ebf1d6  ./SHA256SUMS
+3f654e56470a21084e3b455e85097e5c16c7072023a340b9a7f430e4efe57c8a  ./README.md
+4479e07311caf757b6e69d5330c2624748e372c8269ef30cf44bad65aa629122  ./SHA256SUMS
 305354b569317da5fa1c5a148947bbf24736993fdb837fa5bec819b1dff8bfe9  ./STATUS.md
 bd7abe5edaa80dd84d1e0c703fec307ae26f9618e91b861b4e1c94629938ac00  ./THIRD_PARTY.md
 efc33ce07ec1cb1e7ebc3b7cae639c09075d50d8ebdc269c3c9c22a0fc7f5e10  ./apk/WorkIsland-hyperos.apk
@@ -15,7 +15,7 @@ c979d7481c3d04e7f32022813ee269f42e525fe8411f459bfb871981964a58c9  ./docs/04-提�
 9f9bef39c1a70dd820d78cd6a3a66f8f9535955e228ddf2c6af30b08541e7e99  ./docs/05-开发过程与真机测试.md
 2ff10e96bce4564238db55532bb49ca07415234478aed426260a9ad3babc4a3d  ./docs/06-状态与保活.md
 cf760f3f9d515ca1dd206a628f12d51154323683d2df97de3e50e545535e5f1c  ./docs/07-HyperOS4适配说明.md
-133844b56cf47fbf92b8c7c4a150a92f2684d08aef1e1b4075458dcdc1d86afa  ./docs/08-DSHA集成.md
+2e5b5205eed59387d61f1aa1fb2278f1ae821f7d5cb7b82dcaba2145a8600f83  ./docs/08-DSHA集成.md
 e5ac582098b79752472d02acc91323a55ab6c7265af66a51eab592668f818835  ./docs/hyperos/island-collapsed.png
 d851c47f4e070ed8858057f5fa65b3de189dc9c437a4a293ae950ca79328dde1  ./docs/hyperos/island-done.png
 7f206a279e191f4da754182b41b06dd69c154a718cacf3c5becda9230aa7c299  ./docs/hyperos/island-progress.png
@@ -84,11 +84,11 @@ e2831e3f02e12ac0518eee32568c4a4a77ae5cbc6d2aaf6af8b360ecb3867255  ./source/app/s
 7e8fe110c14e3978fb2b5540d0a66d32016e203d8f132ce7e06d50e16321398f  ./source/app/src/com/dafeiyu/workisland/Prefs.java
 52bef2eae319ccc1c0ff01988eb4f42460addbb85d4494add2161d2accc68760  ./source/driver/driver.mjs
 7eba5d019f8f28d0d9cd94933ac40996db515f505796d459d98a05f2d86bd01f  ./source/driver/watch-island.mjs
-2755abf638fa24e0783c69aaef5a44cfb994513a83026662fb006ca295c6f20b  ./source/dsha-plugin/dsh-work-island-0.1.2.tar.gz
-11c9d1beddd7130db8ba29791162514b728dcc6149e1005f1430cbe81aaff13b  ./source/dsha-plugin/dsh-work-island/README.md
+221139933691b6503e04b7d3a20c3d3cd9cdc79970c0ddb1ac02753e4c723f98  ./source/dsha-plugin/dsh-work-island-0.2.0.tar.gz
+4a3ab92b2156dc29f4dc23b7ebdbc621fa28d3ad6eff87508c7841a000784d31  ./source/dsha-plugin/dsh-work-island/README.md
 94a1eb1baaf24a9f9948b2f735963424a25ec29f76aab31c3dbfce25cfb3bf92  ./source/dsha-plugin/dsh-work-island/cordis.patch.yml
-2bb0eaea62f21a50dc2ee8ccd6e2dd5e8ef92ae298f3e03b742ca7014ea71d23  ./source/dsha-plugin/dsh-work-island/lib/index.js
-538def9c60f8ac1a64215005909ecbf6a6c7a08862e5022c79d79d6989da71ad  ./source/dsha-plugin/dsh-work-island/package.json
+8a1fb1d21b2c078aeb730c4e7084e595c17ab423634e42321b017be9dd6aa8fe  ./source/dsha-plugin/dsh-work-island/lib/index.js
+fcb14154e6ff8fa3a3a86465d4296abdaba6d36daf06f0e0ac3f23ddbbf5d301  ./source/dsha-plugin/dsh-work-island/package.json
 aeda82a6bf66fedcabbd7b75b1382af2b583a5454c7b1e86e21c980e56d94a8b  ./source/gateway/server.mjs
 f3dc40a2f5366337a35e51ca941f6b53c6c7ddfd3b761e6775b9220c04bf9d3a  ./source/gateway/server.mjs.original
 0f9b0cff3a0ac8a75f4bacba6b0492f3fc51bac5d1c0f6d71359224e0ddc9c40  ./source/gateway/work-island.mjs
